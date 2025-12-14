@@ -1,0 +1,72 @@
+[gd_scene load_steps=2 format=3 uid="uid://breeding_panel_001"]
+
+[ext_resource type="Script" path="res://scripts/ui/BreedingPanel.gd" id="1_breeding"]
+
+[node name="BreedingPanel" type="Control"]
+anchors_preset = 0
+offset_right = 400.0
+offset_bottom = 180.0
+script = ExtResource("1_breeding")
+
+[node name="Panel" type="Panel" parent="."]
+layout_mode = 0
+offset_right = 400.0
+offset_bottom = 180.0
+
+[node name="TitleLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = 390.0
+offset_bottom = 35.0
+theme_override_font_sizes/font_size = 18
+text = "🐉 Dragon Breeding Lab"
+horizontal_alignment = 1
+
+[node name="ParentASlot" type="Button" parent="."]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 45.0
+offset_right = 180.0
+offset_bottom = 105.0
+text = "Parent A:
+[Click to Select]"
+
+[node name="XLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 185.0
+offset_top = 60.0
+offset_right = 215.0
+offset_bottom = 90.0
+theme_override_font_sizes/font_size = 24
+text = "×"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ParentBSlot" type="Button" parent="."]
+layout_mode = 0
+offset_left = 220.0
+offset_top = 45.0
+offset_right = 380.0
+offset_bottom = 105.0
+text = "Parent B:
+[Click to Select]"
+
+[node name="BreedButton" type="Button" parent="."]
+layout_mode = 0
+offset_left = 130.0
+offset_top = 115.0
+offset_right = 270.0
+offset_bottom = 145.0
+disabled = true
+text = "🥚 Breed!"
+
+[node name="InstructionsLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 150.0
+offset_right = 390.0
+offset_bottom = 175.0
+theme_override_font_sizes/font_size = 12
+text = "Click a dragon, then click 'Parent A' to select it"
+horizontal_alignment = 1

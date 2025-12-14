@@ -1,0 +1,49 @@
+[gd_scene load_steps=3 format=3 uid="uid://ksnkcxa0t5ae"]
+
+[ext_resource type="Script" uid="uid://ccseak835qrg2" path="res://scripts/dragons/Dragon.gd" id="1_dragon"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_click"]
+size = Vector2(80, 100)
+
+[node name="Dragon" type="Node2D"]
+script = ExtResource("1_dragon")
+
+[node name="SelectionHighlight" type="ColorRect" parent="."]
+visible = false
+offset_left = -45.0
+offset_top = -55.0
+offset_right = 45.0
+offset_bottom = 55.0
+color = Color(1, 1, 0, 0.4)
+
+[node name="Sprite" type="ColorRect" parent="."]
+offset_left = -40.0
+offset_top = -50.0
+offset_right = 40.0
+offset_bottom = 50.0
+color = Color(1, 0.4, 0.1, 1)
+
+[node name="GenotypeLabel" type="Label" parent="."]
+offset_left = -40.0
+offset_top = 55.0
+offset_right = 40.0
+offset_bottom = 85.0
+theme_override_font_sizes/font_size = 24
+text = "Ff"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="NameLabel" type="Label" parent="."]
+offset_left = -50.0
+offset_top = -75.0
+offset_right = 50.0
+offset_bottom = -55.0
+theme_override_font_sizes/font_size = 14
+text = "Dragon"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ClickArea" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ClickArea"]
+shape = SubResource("RectangleShape2D_click")
