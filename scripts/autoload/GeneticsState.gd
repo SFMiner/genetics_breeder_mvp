@@ -6,6 +6,7 @@ extends Node
 ## to offspring following predictable patterns.
 
 signal dragon_added(dragon_id: int)
+signal dragon_renamed(dragon_id: int, new_name: String)
 signal breeding_complete(offspring_id: int)
 signal collection_reset()
 
@@ -73,6 +74,18 @@ func add_dragon(genotype: Dictionary, dragon_name: String = "") -> int:
 	dragon_added.emit(dragon_id)
 	
 	return dragon_id
+
+
+func rename_dragon(dragon_id: int, new_name: String) -> void:
+	## Rename a dragon by ID; no-op if not found or name empty
+	if new_name.strip_edges().is_empty():
+		return
+	
+	for i in dragon_collection.size():
+		if dragon_collection[i]["id"] == dragon_id:
+			dragon_collection[i]["name"] = new_name.strip_edges()
+			dragon_renamed.emit(dragon_id, new_name.strip_edges())
+			return
 
 
 func get_dragon(dragon_id: int) -> Dictionary:

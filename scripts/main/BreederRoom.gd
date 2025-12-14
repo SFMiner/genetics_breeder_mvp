@@ -25,6 +25,7 @@ const DRAGONS_PER_ROW := 7
 func _ready() -> void:
 	# Connect GeneticsState signals
 	GeneticsState.dragon_added.connect(_on_dragon_added)
+	GeneticsState.dragon_renamed.connect(_on_dragon_renamed)
 	GeneticsState.breeding_complete.connect(_on_breeding_complete)
 	GeneticsState.collection_reset.connect(_on_collection_reset)
 
@@ -119,6 +120,13 @@ func _on_parent_b_selected(dragon_id: int) -> void:
 	
 	# Update Punnett square
 	_update_punnett_square()
+
+
+func _on_dragon_renamed(dragon_id: int, _new_name: String) -> void:
+	## Refresh the dragon tile when its name changes
+	var dragon_node: Dragon = dragon_nodes.get(dragon_id)
+	if dragon_node:
+		dragon_node.refresh_display()
 
 
 func _update_punnett_square() -> void:
