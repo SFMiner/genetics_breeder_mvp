@@ -1,4 +1,4 @@
-extends Node2D
+extends Control
 class_name Dragon
 ## Dragon - Visual representation of a dragon in the breeding game
 ##
@@ -11,13 +11,11 @@ signal clicked(dragon_id: int)
 @export var dragon_id: int = -1
 
 ## Visual components
+@onready var sprite: ColorRect = $Sprite
 @onready var genotype_label: Label = $GenotypeLabel
 @onready var name_label: Label = $NameLabel
 @onready var click_area: Area2D = $ClickArea
 @onready var selection_highlight: ColorRect = $SelectionHighlight
-
-var sprite: ColorRect
-
 
 ## Colors for phenotypes
 const COLOR_FIRE_BREATHER := Color(1.0, 0.4, 0.1)      # Orange
@@ -32,21 +30,34 @@ var is_selected_as_parent_b: bool = false
 
 
 func _ready() -> void:
-	# Connect click detection
-	sprite = $Sprite
-	print(sprite)
-	click_area.input_event.connect(_on_click_area_input_event)
+	# Let the Area2D handle input; the Control root should not consume it
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	
+	# Ensure click signal is connected (scene also wires it, but keep it explicit)
+	if click_area and not click_area.input_event.is_connected(_on_click_area_input_event):
+		click_area.input_pickable = true
+		click_area.input_event.connect(_on_click_area_input_event)
 	
 	# Initial setup if dragon_id is set
 	if dragon_id >= 0:
 		refresh_display()
 
-
 func setup(id: int) -> void:
 	## Initialize this dragon with data from GeneticsState
+	# If setup is called via call_deferred, @onready vars will already be valid.
+	# In case it's ever called earlier, re-cache the nodes defensively.
+	if not sprite:
+		sprite = $Sprite
+	if not genotype_label:
+		genotype_label = $GenotypeLabel
+	if not name_label:
+		name_label = $NameLabel
+	if not selection_highlight:
+		selection_highlight = $SelectionHighlight
+	
 	dragon_id = id
 	refresh_display()
-	sprite = $Sprite
+
 
 func refresh_display() -> void:
 	## Update visuals based on dragon data
@@ -59,17 +70,14 @@ func refresh_display() -> void:
 	
 	# Set color based on phenotype
 	var is_fire: bool = GeneticsState.is_fire_breather(dragon_id)
-	if sprite:
-		sprite.color = COLOR_FIRE_BREATHER if is_fire else COLOR_NO_FIRE
+	sprite.color = COLOR_FIRE_BREATHER if is_fire else COLOR_NO_FIRE
 	
 	# Set genotype label
 	var genotype_str: String = GeneticsState.get_genotype_string(dragon_id, "fire")
-	if genotype_label:
-		genotype_label.text = genotype_str
+	genotype_label.text = genotype_str
 	
 	# Set name label
-	if name_label:
-		name_label.text = dragon_data.get("name", "Dragon")
+	name_label.text = dragon_data.get("name", "Dragon")
 	
 	# Update selection highlight
 	_update_selection_highlight()

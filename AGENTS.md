@@ -28,7 +28,7 @@
 - If you add logic-heavy code, consider a headless run plus in-editor breakpoints to validate allele calculations.
 
 ## Commit & Pull Request Guidelines
-- Use concise, imperative commit messages (`Add Punnett probability labels`, `Fix selection highlight reset`).
+- Git repo is initialized; keep `main` clean. Stage intentionally (`git status`, `git add <paths>`) and use concise, imperative commits (`Add Punnett probability labels`, `Fix selection highlight reset`).
 - In PRs, include: summary of changes, gameplay impact, reproduction steps, and screenshots/GIFs for UI updates.
 - Mention modified scenes/scripts explicitly (e.g., `scenes/ui/PunnettSquare.tscn`, `scripts/autoload/GeneticsState.gd`) so reviewers can focus their checks.
 - Keep diffs minimal: prefer updating existing scenes/scripts rather than duplicating nodes; remove unused debug prints before submission.

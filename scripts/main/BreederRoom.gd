@@ -4,7 +4,7 @@ extends Node2D
 ## Manages the breeding lab: displays dragons, handles selection,
 ## coordinates UI components, and spawns offspring.
 
-@onready var dragon_container: Node2D = $DragonContainer
+@onready var dragon_grid: GridContainer = %DragonGrid
 @onready var breeding_panel: BreedingPanel = $CanvasLayer/BreedingPanel
 @onready var punnett_square: PunnettSquareUI = $CanvasLayer/PunnettSquare
 @onready var selection_popup: SelectionPopup = $CanvasLayer/SelectionPopup
@@ -18,12 +18,8 @@ var dragon_scene: PackedScene = preload("res://scenes/organisms/Dragon.tscn")
 ## Track dragon node instances by ID
 var dragon_nodes: Dictionary = {}
 
-## Grid positions for dragons (simple layout)
-const DRAGON_START_X := 150
-const DRAGON_START_Y := 200
-const DRAGON_SPACING_X := 180
-const DRAGON_SPACING_Y := 180
-const DRAGONS_PER_ROW := 6
+## Grid layout
+const DRAGONS_PER_ROW := 7
 
 
 func _ready() -> void:
@@ -31,7 +27,9 @@ func _ready() -> void:
 	GeneticsState.dragon_added.connect(_on_dragon_added)
 	GeneticsState.breeding_complete.connect(_on_breeding_complete)
 	GeneticsState.collection_reset.connect(_on_collection_reset)
-	
+
+	# Configure grid
+	dragon_grid.columns = DRAGONS_PER_ROW
 	# Connect UI signals
 	breeding_panel.breed_requested.connect(_on_breed_requested)
 	selection_popup.parent_a_selected.connect(_on_parent_a_selected)
@@ -55,21 +53,13 @@ func _spawn_dragon_node(dragon_id: int) -> void:
 	## Create a Dragon node for the given ID
 	
 	var dragon_instance: Dragon = dragon_scene.instantiate()
-	dragon_instance.setup(dragon_id)
+	dragon_grid.add_child(dragon_instance)
 	
-	# Position in grid
-	var index: int = dragon_nodes.size()
-	var grid_x: int = index % DRAGONS_PER_ROW
-	var grid_y: int = index / DRAGONS_PER_ROW
-	dragon_instance.position = Vector2(
-		DRAGON_START_X + grid_x * DRAGON_SPACING_X,
-		DRAGON_START_Y + grid_y * DRAGON_SPACING_Y
-	)
+	# Defer setup until after the node is fully inside the tree so @onready vars exist
+	dragon_instance.call_deferred("setup", dragon_id)
 	
-	# Connect click signal
+	# Connect click signal after setup
 	dragon_instance.clicked.connect(_on_dragon_clicked)
-	
-	dragon_container.add_child(dragon_instance)
 	dragon_nodes[dragon_id] = dragon_instance
 
 
@@ -194,7 +184,7 @@ func _on_reset_pressed() -> void:
 
 func _on_collection_reset() -> void:
 	## Handle GeneticsState reset
-	_spawn_all_dragons()
+	# New dragons are emitted via dragon_added during reset; avoid double-spawning.
 	_update_generation_label()
 
 

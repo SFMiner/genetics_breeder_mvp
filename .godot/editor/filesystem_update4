@@ -1,2 +1,4 @@
 res://scenes/organisms/Dragon.tscn
 res://scripts/dragons/Dragon.gd
+res://scripts/main/BreederRoom.gd
+res://scenes/main/BreederRoom.tscn
