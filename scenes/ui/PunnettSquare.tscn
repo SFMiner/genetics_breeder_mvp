@@ -1,107 +1,214 @@
-[gd_scene load_steps=2 format=3 uid="uid://beje45giu111w"]
+[gd_scene load_steps=4 format=3 uid="uid://beje45giu111w"]
 
 [ext_resource type="Script" uid="uid://c6dre202oi18w" path="res://scripts/ui/PunnettSquare.gd" id="1_punnett"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4sh13"]
+bg_color = Color(0.1366629, 0.23756555, 0.32093456, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pv5pj"]
+bg_color = Color(0.2911626, 0.1873461, 0.23399106, 1)
 
 [node name="PunnettSquare" type="Control"]
 layout_mode = 3
 anchors_preset = 0
-offset_right = 280.0
-offset_bottom = 320.0
+offset_right = 320.0
+offset_bottom = 360.0
 script = ExtResource("1_punnett")
 
 [node name="Panel" type="Panel" parent="."]
 layout_mode = 0
-offset_right = 379.0
-offset_bottom = 320.0
+offset_right = 320.0
+offset_bottom = 392.0
 
 [node name="TitleLabel" type="Label" parent="."]
 layout_mode = 0
 offset_left = 10.0
 offset_top = 10.0
-offset_right = 270.0
+offset_right = 310.0
 offset_bottom = 35.0
 theme_override_font_sizes/font_size = 18
-text = "Punnett Square: Fire Trait"
+text = "Punnett Square"
 horizontal_alignment = 1
-
-[node name="TraitSelector" type="OptionButton" parent="."]
-layout_mode = 0
-offset_left = 10.0
-offset_top = 40.0
-offset_right = 130.0
-offset_bottom = 65.0
 
 [node name="ParentALabel" type="Label" parent="."]
 layout_mode = 0
-offset_left = 140.0
-offset_top = 45.0
-offset_right = 270.0
-offset_bottom = 70.0
-theme_override_font_sizes/font_size = 20
-text = "      F       f"
+offset_left = 10.0
+offset_top = 40.0
+offset_right = 300.0
+offset_bottom = 65.0
+theme_override_font_sizes/font_size = 16
+text = "Alleles A"
 horizontal_alignment = 1
 
 [node name="ParentBLabel" type="Label" parent="."]
 layout_mode = 0
 offset_left = 10.0
-offset_top = 90.0
-offset_right = 50.0
-offset_bottom = 190.0
-theme_override_font_sizes/font_size = 20
-text = "F
-
-f"
+offset_top = 80.0
+offset_right = 60.0
+offset_bottom = 220.0
+theme_override_font_sizes/font_size = 16
+text = "Alleles B"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="GridContainer" type="GridContainer" parent="."]
 layout_mode = 0
-offset_left = 140.0
-offset_top = 90.0
-offset_right = 270.0
-offset_bottom = 190.0
-columns = 2
+offset_left = 70.0
+offset_top = 80.0
+offset_right = 310.0
+offset_bottom = 220.0
+columns = 4
 
 [node name="Cell0" type="Label" parent="GridContainer"]
-custom_minimum_size = Vector2(100, 50)
+custom_minimum_size = Vector2(60, 40)
 layout_mode = 2
-theme_override_font_sizes/font_size = 28
-text = "FF"
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxFlat_4sh13")
+text = "-"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="Cell1" type="Label" parent="GridContainer"]
-custom_minimum_size = Vector2(100, 50)
+custom_minimum_size = Vector2(60, 40)
 layout_mode = 2
-theme_override_font_sizes/font_size = 28
-text = "Ff"
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxFlat_pv5pj")
+text = "-"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="Cell2" type="Label" parent="GridContainer"]
-custom_minimum_size = Vector2(100, 50)
+custom_minimum_size = Vector2(60, 40)
 layout_mode = 2
-theme_override_font_sizes/font_size = 28
-text = "Ff"
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxFlat_4sh13")
+text = "-"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="Cell3" type="Label" parent="GridContainer"]
-custom_minimum_size = Vector2(100, 50)
+custom_minimum_size = Vector2(60, 40)
 layout_mode = 2
-theme_override_font_sizes/font_size = 28
-text = "ff"
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxFlat_pv5pj")
+text = "-"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Cell4" type="Label" parent="GridContainer"]
+custom_minimum_size = Vector2(60, 40)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxFlat_pv5pj")
+text = "-"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Cell5" type="Label" parent="GridContainer"]
+custom_minimum_size = Vector2(60, 40)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxFlat_4sh13")
+text = "-"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Cell6" type="Label" parent="GridContainer"]
+custom_minimum_size = Vector2(60, 40)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxFlat_pv5pj")
+text = "-"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Cell7" type="Label" parent="GridContainer"]
+custom_minimum_size = Vector2(60, 40)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxFlat_4sh13")
+text = "-"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Cell8" type="Label" parent="GridContainer"]
+custom_minimum_size = Vector2(60, 40)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxFlat_4sh13")
+text = "-"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Cell9" type="Label" parent="GridContainer"]
+custom_minimum_size = Vector2(60, 40)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxFlat_pv5pj")
+text = "-"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Cell10" type="Label" parent="GridContainer"]
+custom_minimum_size = Vector2(60, 40)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxFlat_4sh13")
+text = "-"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Cell11" type="Label" parent="GridContainer"]
+custom_minimum_size = Vector2(60, 40)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxFlat_pv5pj")
+text = "-"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Cell12" type="Label" parent="GridContainer"]
+custom_minimum_size = Vector2(60, 40)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxFlat_pv5pj")
+text = "-"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Cell13" type="Label" parent="GridContainer"]
+custom_minimum_size = Vector2(60, 40)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxFlat_4sh13")
+text = "-"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Cell14" type="Label" parent="GridContainer"]
+custom_minimum_size = Vector2(60, 40)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxFlat_pv5pj")
+text = "-"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Cell15" type="Label" parent="GridContainer"]
+custom_minimum_size = Vector2(60, 40)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxFlat_4sh13")
+text = "-"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="ProbabilityLabel" type="Label" parent="."]
 layout_mode = 0
 offset_left = 10.0
-offset_top = 190.0
-offset_right = 270.0
-offset_bottom = 310.0
-theme_override_font_sizes/font_size = 16
-text = "Predicted Offspring:
-🔥 Fire-breather: 75%
-❄️ No Fire: 25%"
+offset_top = 308.0
+offset_right = 310.0
+offset_bottom = 371.0
+theme_override_font_sizes/font_size = 14
+text = "Predicted Offspring:"
 horizontal_alignment = 1

@@ -137,7 +137,6 @@ func calculate_phenotype(genotype: Dictionary) -> Dictionary:
 		if trait_def.is_empty():
 			continue
 		
-		# Complete dominance: presence of dominant allele determines phenotype
 		var dominant: String = trait_def["dominant_allele"]
 		
 		if dominant in alleles:
@@ -165,7 +164,6 @@ func breed(parent_a_id: int, parent_b_id: int) -> int:
 		parent_b["genotype"]
 	)
 	
-	# Create the offspring
 	var offspring_id := add_dragon(offspring_genotype)
 	
 	breeding_complete.emit(offspring_id)
@@ -185,7 +183,6 @@ func _calculate_offspring_genotype(genotype_a: Dictionary, genotype_b: Dictionar
 		if alleles_a.size() < 2 or alleles_b.size() < 2:
 			continue
 		
-		# Randomly pick one allele from each parent
 		var from_a: String = alleles_a[randi() % 2]
 		var from_b: String = alleles_b[randi() % 2]
 		
@@ -196,7 +193,6 @@ func _calculate_offspring_genotype(genotype_a: Dictionary, genotype_b: Dictionar
 
 func build_punnett_square(parent_a_id: int, parent_b_id: int, trait_id: String) -> Array:
 	## Build a 2x2 Punnett square for a single trait
-	## Returns array of arrays: [[top-left, top-right], [bottom-left, bottom-right]]
 	
 	var parent_a := get_dragon(parent_a_id)
 	var parent_b := get_dragon(parent_b_id)
@@ -210,26 +206,57 @@ func build_punnett_square(parent_a_id: int, parent_b_id: int, trait_id: String) 
 	if alleles_a.is_empty() or alleles_b.is_empty():
 		return []
 	
-	# Build 2x2 grid
-	# Parent A's alleles go across the top
-	# Parent B's alleles go down the left side
 	var square := []
-	
 	for b_allele in alleles_b:
 		var row := []
 		for a_allele in alleles_a:
-			# Combine alleles, normalized (capital first)
 			var combined := _normalize_allele_pair(a_allele, b_allele)
 			row.append(combined)
 		square.append(row)
+	return square
+
+
+func build_gametes(genotype: Dictionary, trait_a: String, trait_b: String) -> Array:
+	## Return the 4 gamete combinations for two traits (independent assortment)
+	var alleles_a: Array = genotype.get(trait_a, [])
+	var alleles_b: Array = genotype.get(trait_b, [])
+	if alleles_a.size() < 2 or alleles_b.size() < 2:
+		return []
 	
+	return [
+		{trait_a: [alleles_a[0]], trait_b: [alleles_b[0]]},
+		{trait_a: [alleles_a[0]], trait_b: [alleles_b[1]]},
+		{trait_a: [alleles_a[1]], trait_b: [alleles_b[0]]},
+		{trait_a: [alleles_a[1]], trait_b: [alleles_b[1]]}
+	]
+
+
+func build_dihybrid_square(parent_a_id: int, parent_b_id: int, trait_a: String, trait_b: String) -> Array:
+	## Build a 4x4 Punnett square for two traits
+	var parent_a := get_dragon(parent_a_id)
+	var parent_b := get_dragon(parent_b_id)
+	if parent_a.is_empty() or parent_b.is_empty():
+		return []
+	
+	var gametes_a := build_gametes(parent_a["genotype"], trait_a, trait_b)
+	var gametes_b := build_gametes(parent_b["genotype"], trait_a, trait_b)
+	if gametes_a.size() < 4 or gametes_b.size() < 4:
+		return []
+	
+	var square := []
+	for g_b in gametes_b:
+		var row := []
+		for g_a in gametes_a:
+			var geno := {}
+			geno[trait_a] = _normalize_allele_pair(g_a[trait_a][0], g_b[trait_a][0])
+			geno[trait_b] = _normalize_allele_pair(g_a[trait_b][0], g_b[trait_b][0])
+			row.append(geno)
+		square.append(row)
 	return square
 
 
 func get_punnett_probabilities(punnett_square: Array, trait_id: String) -> Dictionary:
 	## Calculate phenotype probabilities from a Punnett square
-	## Returns: {"fire-breather": 0.75, "no fire": 0.25} for example
-	
 	var trait_def: Dictionary = traits.get(trait_id, {})
 	if trait_def.is_empty() or punnett_square.is_empty():
 		return {}
@@ -240,8 +267,6 @@ func get_punnett_probabilities(punnett_square: Array, trait_id: String) -> Dicti
 	for row in punnett_square:
 		for cell in row:
 			total_cells += 1
-			
-			# Determine phenotype for this genotype
 			var genotype := {trait_id: cell}
 			var phenotype := calculate_phenotype(genotype)
 			var phenotype_value: String = phenotype.get(trait_id, "unknown")
@@ -250,7 +275,6 @@ func get_punnett_probabilities(punnett_square: Array, trait_id: String) -> Dicti
 				phenotype_counts[phenotype_value] = 0
 			phenotype_counts[phenotype_value] += 1
 	
-	# Convert to probabilities
 	var probabilities := {}
 	for pheno in phenotype_counts.keys():
 		probabilities[pheno] = float(phenotype_counts[pheno]) / float(total_cells)
@@ -258,57 +282,69 @@ func get_punnett_probabilities(punnett_square: Array, trait_id: String) -> Dicti
 	return probabilities
 
 
+func get_dihybrid_probabilities(punnett_square: Array, trait_a: String, trait_b: String) -> Dictionary:
+	## Phenotype probabilities for two traits combined
+	if punnett_square.is_empty():
+		return {}
+	
+	var total := 0
+	var counts := {}
+	for row in punnett_square:
+		for cell in row:
+			total += 1
+			var phenotype := calculate_phenotype(cell)
+			var fire_pheno: String = phenotype.get(trait_a, "unknown")
+			var wings_pheno: String = phenotype.get(trait_b, "unknown")
+			var key := "%s, %s" % [fire_pheno, wings_pheno]
+			if key not in counts:
+				counts[key] = 0
+			counts[key] += 1
+	
+	var probs := {}
+	for k in counts.keys():
+		probs[k] = float(counts[k]) / float(total)
+	return probs
+
+
 func _normalize_genotype(genotype: Dictionary) -> Dictionary:
-	## Ensure alleles are in standard order (capital letters first)
-	
 	var normalized := {}
-	
 	for trait_id in genotype.keys():
 		var alleles: Array = genotype[trait_id]
 		if alleles.size() >= 2:
 			normalized[trait_id] = _normalize_allele_pair(alleles[0], alleles[1])
-	
 	return normalized
 
 
 func _normalize_allele_pair(allele1: String, allele2: String) -> Array:
-	## Put capital letter first: ["f", "F"] becomes ["F", "f"]
-	
 	if allele1 == allele1.to_upper() and allele2 == allele2.to_lower():
 		return [allele1, allele2]
 	elif allele2 == allele2.to_upper() and allele1 == allele1.to_lower():
 		return [allele2, allele1]
 	else:
-		# Both same case, return as-is
 		return [allele1, allele2]
 
 
 func _determine_generation(dragon_id: int) -> int:
-	## Simple generation tracking: starters are gen 0
 	if dragon_id < 2:
-		return 0  # P generation
+		return 0
 	else:
-		return 1  # For MVP, all bred dragons are "F1" (simplified)
+		return 1
 
 
 func select_parent_a(dragon_id: int) -> void:
-	## Set a dragon as Parent A for breeding
 	selected_parent_a_id = dragon_id
 
 
 func select_parent_b(dragon_id: int) -> void:
-	## Set a dragon as Parent B for breeding
 	selected_parent_b_id = dragon_id
 
 
 func clear_selection() -> void:
-	## Clear both parent selections
 	selected_parent_a_id = -1
 	selected_parent_b_id = -1
 
 
 func can_breed() -> bool:
-	## Check if breeding is possible (both parents selected and different)
 	return (
 		selected_parent_a_id >= 0 and
 		selected_parent_b_id >= 0 and
@@ -317,7 +353,6 @@ func can_breed() -> bool:
 
 
 func reset() -> void:
-	## Reset to initial state (for new class period)
 	dragon_collection.clear()
 	_next_dragon_id = 0
 	clear_selection()
@@ -326,7 +361,6 @@ func reset() -> void:
 
 
 func get_genotype_string(dragon_id: int, trait_id: String = "fire") -> String:
-	## Get human-readable genotype string like "Ff" or "FF"
 	var dragon := get_dragon(dragon_id)
 	if dragon.is_empty():
 		return ""
@@ -339,7 +373,6 @@ func get_genotype_string(dragon_id: int, trait_id: String = "fire") -> String:
 
 
 func is_fire_breather(dragon_id: int) -> bool:
-	## Quick check if dragon breathes fire
 	var dragon := get_dragon(dragon_id)
 	if dragon.is_empty():
 		return false
@@ -348,7 +381,6 @@ func is_fire_breather(dragon_id: int) -> bool:
 
 
 func get_trait_ids() -> Array:
-	## Return active trait ids for the current level
 	var ids := traits.keys()
 	ids.sort()
 	return ids
@@ -359,7 +391,6 @@ func get_trait_display_name(trait_id: String) -> String:
 
 
 func get_genotype_summary(dragon_id: int) -> String:
-	## Concise genotype summary across all traits, ordered by trait id
 	var dragon := get_dragon(dragon_id)
 	if dragon.is_empty():
 		return ""
@@ -369,11 +400,10 @@ func get_genotype_summary(dragon_id: int) -> String:
 		var genotype: Array = dragon["genotype"].get(trait_id, [])
 		if genotype.size() == 2:
 			parts.append("%s: %s%s" % [trait_id.capitalize(), genotype[0], genotype[1]])
-	return " \n ".join(parts)
+	return "\n".join(parts)
 
 
 func get_phenotype_summary(dragon_id: int) -> String:
-	## Concise phenotype summary across all traits
 	var dragon := get_dragon(dragon_id)
 	if dragon.is_empty():
 		return ""
@@ -387,7 +417,6 @@ func get_phenotype_summary(dragon_id: int) -> String:
 
 
 func set_level(level: int) -> void:
-	## Change active level (1 or 2) and reset collection
 	var clamped = clamp(level, 1, TRAIT_LIBRARY.size())
 	if clamped == current_level:
 		return
@@ -401,7 +430,6 @@ func _set_traits_for_level(level: int) -> void:
 
 
 func _ensure_all_traits(genotype: Dictionary) -> Dictionary:
-	## Ensure genotype has entries for all active traits (default recessive)
 	for trait_id in traits.keys():
 		if not genotype.has(trait_id):
 			var recessive: String = traits[trait_id]["recessive_allele"]

@@ -6,7 +6,7 @@ extends Node2D
 
 @onready var dragon_grid: GridContainer = %DragonGrid
 @onready var breeding_panel: BreedingPanel = $CanvasLayer/BreedingPanel
-@onready var punnett_square: PunnettSquareUI = $CanvasLayer/PunnettSquare
+@onready var punnett_square: PunnettSquareUI = %PunnettSquare
 @onready var selection_popup: SelectionPopup = $CanvasLayer/SelectionPopup
 @onready var reset_button: Button = $CanvasLayer/ResetButton
 @onready var level_select: OptionButton = $CanvasLayer/LevelSelect
@@ -39,7 +39,8 @@ func _ready() -> void:
 	reset_button.pressed.connect(_on_reset_pressed)
 	level_select.item_selected.connect(_on_level_selected)
 	_populate_level_select()
-	punnett_square.refresh_trait_options(true)
+	_ensure_punnett_square()
+	_ensure_punnett_square()
 	
 	# Spawn initial dragons from GeneticsState
 	_spawn_all_dragons()
@@ -135,13 +136,16 @@ func _on_dragon_renamed(dragon_id: int, _new_name: String) -> void:
 
 func _update_punnett_square() -> void:
 	## Update the Punnett square display based on selected parents
+	_ensure_punnett_square()
 	if GeneticsState.selected_parent_a_id >= 0 and GeneticsState.selected_parent_b_id >= 0:
-		punnett_square.display_cross(
-			GeneticsState.selected_parent_a_id,
-			GeneticsState.selected_parent_b_id
-		)
+		if punnett_square:
+			punnett_square.display_cross(
+				GeneticsState.selected_parent_a_id,
+				GeneticsState.selected_parent_b_id
+			)
 	else:
-		punnett_square.hide_square()
+		if punnett_square:
+			punnett_square.hide_square()
 
 
 func _on_breed_requested() -> void:
@@ -183,7 +187,8 @@ func _on_reset_pressed() -> void:
 	
 	# Clear UI state
 	breeding_panel.clear_parents()
-	punnett_square.hide_square()
+	if punnett_square:
+		punnett_square.hide_square()
 	selection_popup.visible = false
 	
 	# Reset GeneticsState (this will re-spawn starters)
@@ -194,7 +199,8 @@ func _on_collection_reset() -> void:
 	## Handle GeneticsState reset
 	# New dragons are emitted via dragon_added during reset; avoid double-spawning.
 	_update_generation_label()
-	punnett_square.refresh_trait_options(true)
+	if punnett_square:
+		punnett_square.refresh_trait_options(true)
 
 
 func _update_generation_label() -> void:
@@ -227,10 +233,12 @@ func _on_level_selected(index: int) -> void:
 		return
 	_clear_dragons()
 	breeding_panel.clear_parents()
-	punnett_square.hide_square()
+	if punnett_square:
+		punnett_square.hide_square()
 	selection_popup.visible = false
 	GeneticsState.set_level(level_id)
-	punnett_square.refresh_trait_options(true)
+	if punnett_square:
+		punnett_square.refresh_trait_options(true)
 	_update_generation_label()
 
 
@@ -238,3 +246,12 @@ func _clear_dragons() -> void:
 	for dragon_node in dragon_nodes.values():
 		dragon_node.queue_free()
 	dragon_nodes.clear()
+
+
+func _ensure_punnett_square() -> void:
+	if punnett_square == null:
+		var node := get_node_or_null("CanvasLayer/PunnettSquare")
+		if node:
+			punnett_square = node
+		else:
+			push_warning("PunnettSquare node not found; check scene tree path.")
