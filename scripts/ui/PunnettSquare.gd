@@ -10,9 +10,14 @@ class_name PunnettSquareUI
 @onready var parent_b_label: Label = $ParentBLabel
 @onready var grid_container: GridContainer = $GridContainer
 @onready var probability_label: Label = $ProbabilityLabel
+@onready var trait_selector: OptionButton = $TraitSelector
 
 ## Cell references (populated on ready)
 var cells: Array[Label] = []
+
+var current_trait_id: String = ""
+var last_parent_a_id: int = -1
+var last_parent_b_id: int = -1
 
 ## Colors for genotype display
 const COLOR_HOMOZYGOUS_DOM := Color(1.0, 0.5, 0.2)    # FF - bright orange
@@ -26,12 +31,17 @@ func _ready() -> void:
 		if child is Label:
 			cells.append(child)
 	
+	trait_selector.item_selected.connect(_on_trait_selected)
+	refresh_trait_options(true)
+	
 	# Start hidden until parents selected
 	visible = false
 
 
 func display_cross(parent_a_id: int, parent_b_id: int) -> void:
 	## Show the Punnett square for a cross between two dragons
+	last_parent_a_id = parent_a_id
+	last_parent_b_id = parent_b_id
 	
 	if parent_a_id < 0 or parent_b_id < 0:
 		visible = false
@@ -44,9 +54,14 @@ func display_cross(parent_a_id: int, parent_b_id: int) -> void:
 		visible = false
 		return
 	
-	# Get alleles for fire trait
-	var alleles_a: Array = parent_a["genotype"].get("fire", [])
-	var alleles_b: Array = parent_b["genotype"].get("fire", [])
+	var trait_id := _get_active_trait_id()
+	if trait_id.is_empty():
+		visible = false
+		return
+	
+	# Get alleles for the active trait
+	var alleles_a: Array = parent_a["genotype"].get(trait_id, [])
+	var alleles_b: Array = parent_b["genotype"].get(trait_id, [])
 	
 	if alleles_a.size() < 2 or alleles_b.size() < 2:
 		visible = false
@@ -57,17 +72,13 @@ func display_cross(parent_a_id: int, parent_b_id: int) -> void:
 	parent_b_label.text = "%s\n\n%s" % [alleles_b[0], alleles_b[1]]
 	
 	# Build and display the Punnett square
-	var punnett: Array = GeneticsState.build_punnett_square(parent_a_id, parent_b_id, "fire")
+	var punnett: Array = GeneticsState.build_punnett_square(parent_a_id, parent_b_id, trait_id)
 	
 	if punnett.is_empty():
 		visible = false
 		return
 	
 	# Fill in the 4 cells
-	# Grid is: [0][1]
-	#          [2][3]
-	# Punnett is: [[top-left, top-right], [bottom-left, bottom-right]]
-	
 	var cell_index := 0
 	for row in punnett:
 		for genotype_array in row:
@@ -78,11 +89,11 @@ func display_cross(parent_a_id: int, parent_b_id: int) -> void:
 			cell_index += 1
 	
 	# Calculate and display probabilities
-	var probs: Dictionary = GeneticsState.get_punnett_probabilities(punnett, "fire")
+	var probs: Dictionary = GeneticsState.get_punnett_probabilities(punnett, trait_id)
 	_display_probabilities(probs)
 	
 	# Update title
-	title_label.text = "Punnett Square: Fire Trait"
+	title_label.text = "Punnett Square: %s" % GeneticsState.get_trait_display_name(trait_id)
 	
 	visible = true
 
@@ -90,11 +101,11 @@ func display_cross(parent_a_id: int, parent_b_id: int) -> void:
 func _get_genotype_color(genotype: String) -> Color:
 	## Return color based on genotype
 	match genotype:
-		"FF":
+		"FF", "WW":
 			return COLOR_HOMOZYGOUS_DOM
-		"Ff", "fF":
+		"Ff", "fF", "Ww", "wW":
 			return COLOR_HETEROZYGOUS
-		"ff":
+		"ff", "ww":
 			return COLOR_HOMOZYGOUS_REC
 		_:
 			return Color.WHITE
@@ -106,8 +117,7 @@ func _display_probabilities(probs: Dictionary) -> void:
 	
 	for phenotype in probs.keys():
 		var percent: int = int(probs[phenotype] * 100)
-		var icon: String = "🔥" if phenotype == "fire-breather" else "❄️"
-		text += "%s %s: %d%%\n" % [icon, phenotype.capitalize(), percent]
+		text += "%s: %d%%\n" % [phenotype.capitalize(), percent]
 	
 	probability_label.text = text
 
@@ -115,3 +125,39 @@ func _display_probabilities(probs: Dictionary) -> void:
 func hide_square() -> void:
 	## Hide the Punnett square
 	visible = false
+
+
+func refresh_trait_options(reset_trait: bool = false) -> void:
+	if reset_trait:
+		current_trait_id = ""
+	trait_selector.clear()
+	var trait_ids: Array = GeneticsState.get_trait_ids()
+	for trait_id in trait_ids:
+		trait_selector.add_item(GeneticsState.get_trait_display_name(trait_id))
+		var idx := trait_selector.get_item_count() - 1
+		trait_selector.set_item_metadata(idx, trait_id)
+	
+	if current_trait_id.is_empty() and trait_ids.size() > 0:
+		current_trait_id = trait_ids[0]
+	
+	# Select current trait in the dropdown
+	for i in range(trait_selector.get_item_count()):
+		if trait_selector.get_item_metadata(i) == current_trait_id:
+			trait_selector.select(i)
+			break
+
+
+func _on_trait_selected(index: int) -> void:
+	var meta = trait_selector.get_item_metadata(index)
+	if meta is String:
+		current_trait_id = meta
+	if last_parent_a_id >= 0 and last_parent_b_id >= 0:
+		display_cross(last_parent_a_id, last_parent_b_id)
+
+
+func _get_active_trait_id() -> String:
+	if current_trait_id.is_empty():
+		var ids := GeneticsState.get_trait_ids()
+		if ids.size() > 0:
+			current_trait_id = ids[0]
+	return current_trait_id

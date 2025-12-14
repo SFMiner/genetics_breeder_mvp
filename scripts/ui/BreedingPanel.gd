@@ -68,7 +68,7 @@ func _update_display() -> void:
 	if displayed_parent_a_id >= 0:
 		var dragon_a: Dictionary = GeneticsState.get_dragon(displayed_parent_a_id)
 		if not dragon_a.is_empty():
-			var geno: String = GeneticsState.get_genotype_string(displayed_parent_a_id)
+			var geno: String = GeneticsState.get_genotype_summary(displayed_parent_a_id)
 			var name: String = dragon_a.get("name", "Dragon")
 			parent_a_slot.text = "Parent A:\n%s (%s)" % [name, geno]
 		else:
@@ -80,7 +80,7 @@ func _update_display() -> void:
 	if displayed_parent_b_id >= 0:
 		var dragon_b: Dictionary = GeneticsState.get_dragon(displayed_parent_b_id)
 		if not dragon_b.is_empty():
-			var geno: String = GeneticsState.get_genotype_string(displayed_parent_b_id)
+			var geno: String = GeneticsState.get_genotype_summary(displayed_parent_b_id)
 			var name: String = dragon_b.get("name", "Dragon")
 			parent_b_slot.text = "Parent B:\n%s (%s)" % [name, geno]
 		else:

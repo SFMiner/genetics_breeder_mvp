@@ -9,6 +9,7 @@ extends Node2D
 @onready var punnett_square: PunnettSquareUI = $CanvasLayer/PunnettSquare
 @onready var selection_popup: SelectionPopup = $CanvasLayer/SelectionPopup
 @onready var reset_button: Button = $CanvasLayer/ResetButton
+@onready var level_select: OptionButton = $CanvasLayer/LevelSelect
 @onready var title_label: Label = $CanvasLayer/TitleLabel
 @onready var generation_label: Label = $CanvasLayer/GenerationLabel
 
@@ -36,6 +37,9 @@ func _ready() -> void:
 	selection_popup.parent_a_selected.connect(_on_parent_a_selected)
 	selection_popup.parent_b_selected.connect(_on_parent_b_selected)
 	reset_button.pressed.connect(_on_reset_pressed)
+	level_select.item_selected.connect(_on_level_selected)
+	_populate_level_select()
+	punnett_square.refresh_trait_options(true)
 	
 	# Spawn initial dragons from GeneticsState
 	_spawn_all_dragons()
@@ -175,11 +179,7 @@ func _flash_dragon(dragon_node: Dragon) -> void:
 
 func _on_reset_pressed() -> void:
 	## Reset the game to initial state
-	
-	# Clear all dragon nodes
-	for dragon_node in dragon_nodes.values():
-		dragon_node.queue_free()
-	dragon_nodes.clear()
+	_clear_dragons()
 	
 	# Clear UI state
 	breeding_panel.clear_parents()
@@ -194,6 +194,7 @@ func _on_collection_reset() -> void:
 	## Handle GeneticsState reset
 	# New dragons are emitted via dragon_added during reset; avoid double-spawning.
 	_update_generation_label()
+	punnett_square.refresh_trait_options(true)
 
 
 func _update_generation_label() -> void:
@@ -208,4 +209,32 @@ func _update_generation_label() -> void:
 		else:
 			no_fire_count += 1
 	
-	generation_label.text = "Dragons: %d | 🔥 Fire: %d | ❄️ No Fire: %d" % [total, fire_count, no_fire_count]
+	generation_label.text = "Dragons: %d | ?? Fire: %d | ?? No Fire: %d" % [total, fire_count, no_fire_count]
+
+
+func _populate_level_select() -> void:
+	level_select.clear()
+	level_select.add_item("Level 1: Fire (monohybrid)", 1)
+	level_select.add_item("Level 2: Fire + Wings", 2)
+	var idx := level_select.get_item_index(GeneticsState.current_level)
+	if idx >= 0:
+		level_select.select(idx)
+
+
+func _on_level_selected(index: int) -> void:
+	var level_id := level_select.get_item_id(index)
+	if level_id == GeneticsState.current_level:
+		return
+	_clear_dragons()
+	breeding_panel.clear_parents()
+	punnett_square.hide_square()
+	selection_popup.visible = false
+	GeneticsState.set_level(level_id)
+	punnett_square.refresh_trait_options(true)
+	_update_generation_label()
+
+
+func _clear_dragons() -> void:
+	for dragon_node in dragon_nodes.values():
+		dragon_node.queue_free()
+	dragon_nodes.clear()

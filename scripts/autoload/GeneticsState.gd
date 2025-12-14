@@ -20,29 +20,54 @@ var _next_dragon_id: int = 0
 var selected_parent_a_id: int = -1
 var selected_parent_b_id: int = -1
 
-## Trait definitions for Level 1 (Fire-breathing only)
-## F = Fire-breathing (dominant), f = no fire (recessive)
-const TRAITS := {
-	"fire": {
-		"name": "Fire-Breathing",
-		"dominant_allele": "F",
-		"recessive_allele": "f",
-		"dominant_phenotype": "fire-breather",
-		"recessive_phenotype": "no fire"
+## Trait library by level
+const TRAIT_LIBRARY := {
+	1: {
+		"fire": {
+			"name": "Fire-Breathing",
+			"dominant_allele": "F",
+			"recessive_allele": "f",
+			"dominant_phenotype": "fire-breather",
+			"recessive_phenotype": "no fire"
+		}
+	},
+	2: {
+		"fire": {
+			"name": "Fire-Breathing",
+			"dominant_allele": "F",
+			"recessive_allele": "f",
+			"dominant_phenotype": "fire-breather",
+			"recessive_phenotype": "no fire"
+		},
+		"wings": {
+			"name": "Wings",
+			"dominant_allele": "W",
+			"recessive_allele": "w",
+			"dominant_phenotype": "vestigial wings (flightless)",
+			"recessive_phenotype": "functional wings (flight)"
+		}
 	}
 }
 
+## Active trait set and level
+var traits: Dictionary = {}
+var current_level: int = 1
+
 
 func _ready() -> void:
-	# Initialize with starter dragons when game begins
+	_set_traits_for_level(current_level)
 	_spawn_starter_dragons()
 
 
 func _spawn_starter_dragons() -> void:
-	## Spawn the P generation: one FF (pure fire) and one ff (pure no-fire)
-	## This models Mendel's original pea plant crosses
-	add_dragon({"fire": ["F", "F"]}, "Blaze")    # Homozygous dominant
-	add_dragon({"fire": ["f", "f"]}, "Frost")    # Homozygous recessive
+	## Spawn the P generation for the active level
+	if current_level == 1:
+		add_dragon({"fire": ["F", "F"]}, "Blaze")    # Homozygous dominant
+		add_dragon({"fire": ["f", "f"]}, "Frost")    # Homozygous recessive
+	else:
+		# Level 2: include wings trait as well
+		add_dragon({"fire": ["F", "F"], "wings": ["W", "W"]}, "Blaze")
+		add_dragon({"fire": ["f", "f"], "wings": ["w", "w"]}, "Frost")
 
 
 func add_dragon(genotype: Dictionary, dragon_name: String = "") -> int:
@@ -52,8 +77,8 @@ func add_dragon(genotype: Dictionary, dragon_name: String = "") -> int:
 	var dragon_id := _next_dragon_id
 	_next_dragon_id += 1
 	
-	# Normalize allele order (capital letters first)
-	var normalized_genotype := _normalize_genotype(genotype)
+	# Normalize allele order and ensure all traits are present
+	var normalized_genotype := _ensure_all_traits(_normalize_genotype(genotype))
 	
 	# Calculate phenotype from genotype
 	var phenotype := calculate_phenotype(normalized_genotype)
@@ -78,13 +103,14 @@ func add_dragon(genotype: Dictionary, dragon_name: String = "") -> int:
 
 func rename_dragon(dragon_id: int, new_name: String) -> void:
 	## Rename a dragon by ID; no-op if not found or name empty
-	if new_name.strip_edges().is_empty():
+	var trimmed := new_name.strip_edges()
+	if trimmed.is_empty():
 		return
 	
-	for i in dragon_collection.size():
+	for i in range(dragon_collection.size()):
 		if dragon_collection[i]["id"] == dragon_id:
-			dragon_collection[i]["name"] = new_name.strip_edges()
-			dragon_renamed.emit(dragon_id, new_name.strip_edges())
+			dragon_collection[i]["name"] = trimmed
+			dragon_renamed.emit(dragon_id, trimmed)
 			return
 
 
@@ -106,7 +132,7 @@ func calculate_phenotype(genotype: Dictionary) -> Dictionary:
 	
 	for trait_id in genotype.keys():
 		var alleles: Array = genotype[trait_id]
-		var trait_def: Dictionary = TRAITS.get(trait_id, {})
+		var trait_def: Dictionary = traits.get(trait_id, {})
 		
 		if trait_def.is_empty():
 			continue
@@ -152,17 +178,20 @@ func _calculate_offspring_genotype(genotype_a: Dictionary, genotype_b: Dictionar
 	
 	var offspring_genotype := {}
 	
-	for trait_id in genotype_a.keys():
-		var alleles_a: Array = genotype_a[trait_id]
-		var alleles_b: Array = genotype_b[trait_id]
+	for trait_id in traits.keys():
+		var alleles_a: Array = genotype_a.get(trait_id, [])
+		var alleles_b: Array = genotype_b.get(trait_id, [])
+		
+		if alleles_a.size() < 2 or alleles_b.size() < 2:
+			continue
 		
 		# Randomly pick one allele from each parent
 		var from_a: String = alleles_a[randi() % 2]
 		var from_b: String = alleles_b[randi() % 2]
 		
-		offspring_genotype[trait_id] = [from_a, from_b]
+		offspring_genotype[trait_id] = _normalize_allele_pair(from_a, from_b)
 	
-	return offspring_genotype
+	return _ensure_all_traits(offspring_genotype)
 
 
 func build_punnett_square(parent_a_id: int, parent_b_id: int, trait_id: String) -> Array:
@@ -201,7 +230,7 @@ func get_punnett_probabilities(punnett_square: Array, trait_id: String) -> Dicti
 	## Calculate phenotype probabilities from a Punnett square
 	## Returns: {"fire-breather": 0.75, "no fire": 0.25} for example
 	
-	var trait_def: Dictionary = TRAITS.get(trait_id, {})
+	var trait_def: Dictionary = traits.get(trait_id, {})
 	if trait_def.is_empty() or punnett_square.is_empty():
 		return {}
 	
@@ -236,7 +265,8 @@ func _normalize_genotype(genotype: Dictionary) -> Dictionary:
 	
 	for trait_id in genotype.keys():
 		var alleles: Array = genotype[trait_id]
-		normalized[trait_id] = _normalize_allele_pair(alleles[0], alleles[1])
+		if alleles.size() >= 2:
+			normalized[trait_id] = _normalize_allele_pair(alleles[0], alleles[1])
 	
 	return normalized
 
@@ -315,3 +345,65 @@ func is_fire_breather(dragon_id: int) -> bool:
 		return false
 	
 	return dragon["phenotype"].get("fire", "") == "fire-breather"
+
+
+func get_trait_ids() -> Array:
+	## Return active trait ids for the current level
+	var ids := traits.keys()
+	ids.sort()
+	return ids
+
+
+func get_trait_display_name(trait_id: String) -> String:
+	return traits.get(trait_id, {}).get("name", trait_id)
+
+
+func get_genotype_summary(dragon_id: int) -> String:
+	## Concise genotype summary across all traits, ordered by trait id
+	var dragon := get_dragon(dragon_id)
+	if dragon.is_empty():
+		return ""
+	
+	var parts: Array[String] = []
+	for trait_id in get_trait_ids():
+		var genotype: Array = dragon["genotype"].get(trait_id, [])
+		if genotype.size() == 2:
+			parts.append("%s: %s%s" % [trait_id.capitalize(), genotype[0], genotype[1]])
+	return " \n ".join(parts)
+
+
+func get_phenotype_summary(dragon_id: int) -> String:
+	## Concise phenotype summary across all traits
+	var dragon := get_dragon(dragon_id)
+	if dragon.is_empty():
+		return ""
+	
+	var parts: Array[String] = []
+	for trait_id in get_trait_ids():
+		var pheno: String = dragon["phenotype"].get(trait_id, "")
+		if not pheno.is_empty():
+			parts.append("%s: %s" % [trait_id.capitalize(), pheno])
+	return " | ".join(parts)
+
+
+func set_level(level: int) -> void:
+	## Change active level (1 or 2) and reset collection
+	var clamped = clamp(level, 1, TRAIT_LIBRARY.size())
+	if clamped == current_level:
+		return
+	current_level = clamped
+	_set_traits_for_level(current_level)
+	reset()
+
+
+func _set_traits_for_level(level: int) -> void:
+	traits = TRAIT_LIBRARY.get(level, TRAIT_LIBRARY[1]).duplicate(true)
+
+
+func _ensure_all_traits(genotype: Dictionary) -> Dictionary:
+	## Ensure genotype has entries for all active traits (default recessive)
+	for trait_id in traits.keys():
+		if not genotype.has(trait_id):
+			var recessive: String = traits[trait_id]["recessive_allele"]
+			genotype[trait_id] = [recessive, recessive]
+	return genotype

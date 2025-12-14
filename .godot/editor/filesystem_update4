@@ -4,3 +4,6 @@ res://scripts/main/BreederRoom.gd
 res://scenes/main/BreederRoom.tscn
 res://scripts/autoload/GeneticsState.gd
 res://scripts/ui/SelectionPopup.gd
+res://scripts/ui/PunnettSquare.gd
+res://scripts/ui/BreedingPanel.gd
+res://scenes/ui/PunnettSquare.tscn

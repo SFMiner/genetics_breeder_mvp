@@ -48,10 +48,8 @@ func show_for_dragon(dragon_id: int, screen_position: Vector2) -> void:
 	
 	# Update labels
 	dragon_name_label.text = dragon.get("name", "Dragon")
-	genotype_label.text = "Genotype: " + GeneticsState.get_genotype_string(dragon_id)
-	
-	var is_fire: bool = GeneticsState.is_fire_breather(dragon_id)
-	phenotype_label.text = "Phenotype: " + ("?? Fire-Breather" if is_fire else "?? No Fire")
+	genotype_label.text = "Genotype: " + GeneticsState.get_genotype_summary(dragon_id)
+	phenotype_label.text = "Phenotype: " + GeneticsState.get_phenotype_summary(dragon_id)
 	
 	rename_line_edit.text = dragon.get("name", "Dragon")
 	_hide_rename_fields()
