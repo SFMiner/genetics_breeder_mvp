@@ -12,6 +12,9 @@ extends Node2D
 @onready var level_select: OptionButton = $CanvasLayer/LevelSelect
 @onready var title_label: Label = $CanvasLayer/TitleLabel
 @onready var generation_label: Label = $CanvasLayer/GenerationLabel
+@onready var breed_player : AudioStreamPlayer = $BreedPlayer
+@onready var rename_player : AudioStreamPlayer = $RenamePlayer
+
 
 ## Preload the Dragon scene
 var dragon_scene: PackedScene = preload("res://scenes/organisms/Dragon.tscn")
@@ -20,7 +23,7 @@ var dragon_scene: PackedScene = preload("res://scenes/organisms/Dragon.tscn")
 var dragon_nodes: Dictionary = {}
 
 ## Grid layout
-const DRAGONS_PER_ROW := 7
+const DRAGONS_PER_ROW : int = 6
 
 
 func _ready() -> void:
@@ -101,6 +104,7 @@ func _on_parent_a_selected(dragon_id: int) -> void:
 	if dragon_node:
 		dragon_node.set_as_parent_a(true)
 	
+	
 	# Update Punnett square
 	_update_punnett_square()
 
@@ -132,6 +136,7 @@ func _on_dragon_renamed(dragon_id: int, _new_name: String) -> void:
 	var dragon_node: Dragon = dragon_nodes.get(dragon_id)
 	if dragon_node:
 		dragon_node.refresh_display()
+	rename_player.play()
 
 
 func _update_punnett_square() -> void:
@@ -158,7 +163,7 @@ func _on_breed_requested() -> void:
 		GeneticsState.selected_parent_a_id,
 		GeneticsState.selected_parent_b_id
 	)
-	
+	breed_player.play()
 	if offspring_id >= 0:
 		_update_generation_label()
 

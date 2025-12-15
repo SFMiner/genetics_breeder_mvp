@@ -1,6 +1,7 @@
-[gd_scene load_steps=3 format=3 uid="uid://ksnkcxa0t5ae"]
+[gd_scene load_steps=4 format=3 uid="uid://ksnkcxa0t5ae"]
 
 [ext_resource type="Script" uid="uid://ccseak835qrg2" path="res://scripts/dragons/Dragon.gd" id="1_dragon"]
+[ext_resource type="AudioStream" uid="uid://pcofpj503b7w" path="res://assets/sfx/select_parent.ogg" id="2_hthvs"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_click"]
 size = Vector2(140, 160)
@@ -55,5 +56,8 @@ position = Vector2(70, 80)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="ClickArea"]
 shape = SubResource("RectangleShape2D_click")
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("2_hthvs")
 
 [connection signal="resized" from="GenotypeLabel" to="." method="_on_genotype_label_resized"]

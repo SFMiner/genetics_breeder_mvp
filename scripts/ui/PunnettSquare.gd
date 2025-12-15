@@ -125,8 +125,8 @@ func _display_monohybrid(parent_a_id: int, parent_b_id: int, trait_id: String) -
 	grid_container.columns = 2
 	_clear_cells()
 	
-	parent_a_label.text = "%s   %s" % [alleles_a[0], alleles_a[1]]
-	parent_b_label.text = "%s\n%s" % [alleles_b[0], alleles_b[1]]
+	parent_a_label.text = "     %s             %s" % [alleles_a[0], alleles_a[1]]
+	parent_b_label.text = "%s\n\n%s" % [alleles_b[0], alleles_b[1]]
 	
 	var punnett: Array = GeneticsState.build_punnett_square(parent_a_id, parent_b_id, trait_id)
 	if punnett.is_empty():
@@ -146,6 +146,7 @@ func _display_monohybrid(parent_a_id: int, parent_b_id: int, trait_id: String) -
 	_display_probabilities(probs)
 	title_label.text = "Punnett Square: %s" % GeneticsState.get_trait_display_name(trait_id)
 	visible = true
+	grid_container.clear_empties()
 
 
 func _display_dihybrid(parent_a_id: int, parent_b_id: int, trait_a: String, trait_b: String) -> void:
@@ -161,7 +162,7 @@ func _display_dihybrid(parent_a_id: int, parent_b_id: int, trait_a: String, trai
 		visible = false
 		return
 	
-	parent_a_label.text = "%s   |   %s   |   %s   |   %s" % [
+	parent_a_label.text = "  %s    |    %s    |    %s    |    %s" % [
 		_gamete_string(gametes_a[0], [trait_a, trait_b]),
 		_gamete_string(gametes_a[1], [trait_a, trait_b]),
 		_gamete_string(gametes_a[2], [trait_a, trait_b]),
@@ -203,7 +204,7 @@ func _display_dihybrid(parent_a_id: int, parent_b_id: int, trait_a: String, trai
 		GeneticsState.get_trait_display_name(trait_b)
 	]
 	visible = true
-
+	grid_container.clear_empties()
 
 func _gamete_string(gamete: Dictionary, order: Array = []) -> String:
 	var parts: Array[String] = []

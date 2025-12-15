@@ -16,6 +16,7 @@ signal clicked(dragon_id: int)
 @onready var name_label: Label = $NameLabel
 @onready var click_area: Area2D = $ClickArea
 @onready var selection_highlight: ColorRect = $SelectionHighlight
+@onready var aud: AudioStreamPlayer = $AudioStreamPlayer
 
 ## Colors for phenotypes (kept for highlights)
 const COLOR_FIRE_BREATHER := Color(1.0, 0.4, 0.1)      # Orange
@@ -116,6 +117,8 @@ func set_as_parent_a(is_parent: bool) -> void:
 	is_selected_as_parent_a = is_parent
 	if is_parent:
 		is_selected_as_parent_b = false
+	aud.play()
+
 	_update_selection_highlight()
 
 
@@ -124,6 +127,8 @@ func set_as_parent_b(is_parent: bool) -> void:
 	is_selected_as_parent_b = is_parent
 	if is_parent:
 		is_selected_as_parent_a = false
+	aud.play()
+
 	_update_selection_highlight()
 
 

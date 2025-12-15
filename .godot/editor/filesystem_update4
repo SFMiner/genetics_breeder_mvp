@@ -1,9 +1,8 @@
-res://scenes/organisms/Dragon.tscn
-res://scripts/dragons/Dragon.gd
-res://scripts/main/BreederRoom.gd
 res://scenes/main/BreederRoom.tscn
-res://scripts/autoload/GeneticsState.gd
-res://scripts/ui/SelectionPopup.gd
-res://scripts/ui/PunnettSquare.gd
-res://scripts/ui/BreedingPanel.gd
+res://credits.txt
+res://scenes/organisms/Dragon.tscn
+res://scripts/main/BreederRoom.gd
+res://scripts/dragons/Dragon.gd
+res://scenes/ui/BreedingPanel.tscn
 res://scenes/ui/PunnettSquare.tscn
+res://scripts/ui/PunnettSquare.gd

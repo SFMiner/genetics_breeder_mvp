@@ -1,6 +1,7 @@
-[gd_scene load_steps=4 format=3 uid="uid://beje45giu111w"]
+[gd_scene load_steps=5 format=3 uid="uid://beje45giu111w"]
 
 [ext_resource type="Script" uid="uid://c6dre202oi18w" path="res://scripts/ui/PunnettSquare.gd" id="1_punnett"]
+[ext_resource type="Script" uid="uid://bpbqcekv7laxk" path="res://scenes/ui/grid_container.gd" id="2_pv5pj"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4sh13"]
 bg_color = Color(0.1366629, 0.23756555, 0.32093456, 1)
@@ -17,8 +18,8 @@ script = ExtResource("1_punnett")
 
 [node name="Panel" type="Panel" parent="."]
 layout_mode = 0
-offset_right = 320.0
-offset_bottom = 392.0
+offset_right = 333.0
+offset_bottom = 436.0
 
 [node name="TitleLabel" type="Label" parent="."]
 layout_mode = 0
@@ -32,24 +33,23 @@ horizontal_alignment = 1
 
 [node name="ParentALabel" type="Label" parent="."]
 layout_mode = 0
-offset_left = 10.0
+offset_left = 71.0
 offset_top = 40.0
-offset_right = 300.0
+offset_right = 322.0
 offset_bottom = 65.0
 theme_override_font_sizes/font_size = 16
 text = "Alleles A"
-horizontal_alignment = 1
 
 [node name="ParentBLabel" type="Label" parent="."]
 layout_mode = 0
 offset_left = 10.0
-offset_top = 80.0
-offset_right = 60.0
-offset_bottom = 220.0
+offset_top = 91.0
+offset_right = 65.0
+offset_bottom = 231.0
 theme_override_font_sizes/font_size = 16
-text = "Alleles B"
+text = "Alleles 
+B"
 horizontal_alignment = 1
-vertical_alignment = 1
 
 [node name="GridContainer" type="GridContainer" parent="."]
 layout_mode = 0
@@ -58,6 +58,7 @@ offset_top = 80.0
 offset_right = 310.0
 offset_bottom = 220.0
 columns = 4
+script = ExtResource("2_pv5pj")
 
 [node name="Cell0" type="Label" parent="GridContainer"]
 custom_minimum_size = Vector2(60, 40)
