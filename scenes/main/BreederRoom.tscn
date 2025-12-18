@@ -1,11 +1,15 @@
-[gd_scene load_steps=7 format=3 uid="uid://qgw1s5p605t0"]
+[gd_scene load_steps=11 format=3 uid="uid://qgw1s5p605t0"]
 
 [ext_resource type="Script" uid="uid://b4jtouata6mbh" path="res://scripts/main/BreederRoom.gd" id="1_main"]
 [ext_resource type="PackedScene" uid="uid://d00b0ly2qowij" path="res://scenes/ui/BreedingPanel.tscn" id="2_breeding"]
+[ext_resource type="Texture2D" uid="uid://dnnjm4xw4c0fn" path="res://assets/dragon_small.png" id="2_xekre"]
 [ext_resource type="PackedScene" uid="uid://beje45giu111w" path="res://scenes/ui/PunnettSquare.tscn" id="3_punnett"]
 [ext_resource type="PackedScene" path="res://scenes/ui/SelectionPopup.tscn" id="4_popup"]
 [ext_resource type="AudioStream" uid="uid://yk003mqw8t1a" path="res://assets/sfx/breed.ogg" id="5_q1b8u"]
 [ext_resource type="AudioStream" uid="uid://mhhwgsx7n5d4" path="res://assets/sfx/rename.ogg" id="6_3e4mx"]
+[ext_resource type="PackedScene" uid="uid://bkb5c4gdodx4k" path="res://scenes/ui/QuizPunnettSquare.tscn" id="7_quiz"]
+[ext_resource type="Texture2D" uid="uid://cv28pxouhetg7" path="res://assets/smoke_emoji.png" id="7_uyvud"]
+[ext_resource type="Texture2D" uid="uid://iabbkmw5800n" path="res://assets/fire_emoji.png" id="8_6yn5m"]
 
 [node name="BreederRoom" type="Node2D"]
 script = ExtResource("1_main")
@@ -14,7 +18,7 @@ script = ExtResource("1_main")
 offset_right = 1280.0
 offset_bottom = 720.0
 mouse_filter = 2
-color = Color(0.15, 0.18, 0.22, 1)
+color = Color(0.14901961, 0.6039216, 0.6745098, 1)
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
@@ -47,20 +51,45 @@ columns = 6
 [node name="TitleLabel" type="Label" parent="CanvasLayer"]
 offset_left = 20.0
 offset_top = 10.0
-offset_right = 500.0
+offset_right = 353.0
 offset_bottom = 50.0
 theme_override_colors/font_color = Color(1, 0.8, 0.4, 1)
 theme_override_font_sizes/font_size = 28
-text = "🐉 Dragon Genetics Lab"
+text = "      Dragon Genetics Lab"
+
+[node name="DragonSmall2" type="Sprite2D" parent="CanvasLayer/TitleLabel"]
+position = Vector2(22.000061, 21)
+scale = Vector2(0.56681556, 0.56681556)
+texture = ExtResource("2_xekre")
+
+[node name="versionLabel" type="Label" parent="CanvasLayer/TitleLabel"]
+layout_mode = 0
+offset_left = 336.0
+offset_top = 17.0
+offset_right = 395.0
+offset_bottom = 34.0
+theme_override_colors/font_color = Color(1, 0.8, 0.4, 1)
+theme_override_font_sizes/font_size = 10
+text = "v0.95"
 
 [node name="GenerationLabel" type="Label" parent="CanvasLayer"]
 offset_left = 20.0
 offset_top = 50.0
 offset_right = 500.0
 offset_bottom = 80.0
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_font_sizes/font_size = 16
-text = "Dragons: 2 | 🔥 Fire: 1 | ❄️ No Fire: 1"
+text = "Dragons: 2 |       Fire: 1 |        No Fire: 1"
+
+[node name="FireEmoji" type="Sprite2D" parent="CanvasLayer/GenerationLabel"]
+position = Vector2(110, 12)
+scale = Vector2(0.16666667, 0.1666667)
+texture = ExtResource("8_6yn5m")
+
+[node name="SmokeEmoji" type="Sprite2D" parent="CanvasLayer/GenerationLabel"]
+position = Vector2(200, 12)
+scale = Vector2(0.167, 0.167)
+texture = ExtResource("7_uyvud")
 
 [node name="BreedingPanel" parent="CanvasLayer" instance=ExtResource("2_breeding")]
 offset_left = 915.0
@@ -81,6 +110,13 @@ offset_top = 220.0
 offset_right = 1252.0
 offset_bottom = 540.0
 
+[node name="QuizSquare" parent="CanvasLayer" instance=ExtResource("7_quiz")]
+unique_name_in_owner = true
+offset_left = 565.0
+offset_top = 217.0
+offset_right = 925.0
+offset_bottom = 717.0
+
 [node name="SelectionPopup" parent="CanvasLayer" instance=ExtResource("4_popup")]
 layout_mode = 3
 offset_left = 400.0
@@ -96,13 +132,14 @@ offset_bottom = 700.0
 text = "🔄 Reset Lab"
 
 [node name="InstructionsLabel" type="Label" parent="CanvasLayer"]
-offset_left = 20.0
-offset_top = 680.0
-offset_right = 800.0
-offset_bottom = 710.0
-theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+offset_left = 11.0
+offset_top = 656.0
+offset_right = 791.0
+offset_bottom = 686.0
+theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_font_sizes/font_size = 14
-text = "Click a dragon to select it as a parent. Use the Punnett Square to predict offspring!"
+text = "Click a dragon to select it as a parent. 
+Use the Punnett Square to predict offspring!"
 
 [node name="BreedPlayer" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("5_q1b8u")

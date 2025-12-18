@@ -1,6 +1,6 @@
 [gd_scene load_steps=5 format=3 uid="uid://beje45giu111w"]
 
-[ext_resource type="Script" uid="uid://c6dre202oi18w" path="res://scripts/ui/PunnettSquare.gd" id="1_punnett"]
+[ext_resource type="Script" uid="uid://c6dre202oi18w" path="res://scripts/ui/PunnettSquare.gd" id="1_pv5pj"]
 [ext_resource type="Script" uid="uid://bpbqcekv7laxk" path="res://scenes/ui/grid_container.gd" id="2_pv5pj"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4sh13"]
@@ -14,7 +14,7 @@ layout_mode = 3
 anchors_preset = 0
 offset_right = 320.0
 offset_bottom = 360.0
-script = ExtResource("1_punnett")
+script = ExtResource("1_pv5pj")
 
 [node name="Panel" type="Panel" parent="."]
 layout_mode = 0

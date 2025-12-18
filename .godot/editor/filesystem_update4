@@ -1,8 +1,5 @@
-res://scenes/main/BreederRoom.tscn
-res://credits.txt
-res://scenes/organisms/Dragon.tscn
+res://scripts/autoload/GeneticsState.gd
 res://scripts/main/BreederRoom.gd
-res://scripts/dragons/Dragon.gd
+res://scripts/ui/QuizPunnettSquare.gd
+res://scenes/main/BreederRoom.tscn
 res://scenes/ui/BreedingPanel.tscn
-res://scenes/ui/PunnettSquare.tscn
-res://scripts/ui/PunnettSquare.gd

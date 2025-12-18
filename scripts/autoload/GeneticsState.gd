@@ -27,7 +27,7 @@ const TRAIT_LIBRARY := {
 			"name": "Fire-Breathing",
 			"dominant_allele": "F",
 			"recessive_allele": "f",
-			"dominant_phenotype": "fire-breather",
+			"dominant_phenotype": "fire",
 			"recessive_phenotype": "no fire"
 		}
 	},
@@ -36,15 +36,15 @@ const TRAIT_LIBRARY := {
 			"name": "Fire-Breathing",
 			"dominant_allele": "F",
 			"recessive_allele": "f",
-			"dominant_phenotype": "fire-breather",
+			"dominant_phenotype": "fire",
 			"recessive_phenotype": "no fire"
 		},
 		"wings": {
 			"name": "Wings",
 			"dominant_allele": "W",
 			"recessive_allele": "w",
-			"dominant_phenotype": "vestigial wings (flightless)",
-			"recessive_phenotype": "functional wings (flight)"
+			"dominant_phenotype": "no flight",
+			"recessive_phenotype": "flight"
 		}
 	}
 }
@@ -376,8 +376,12 @@ func is_fire_breather(dragon_id: int) -> bool:
 	var dragon := get_dragon(dragon_id)
 	if dragon.is_empty():
 		return false
-	
-	return dragon["phenotype"].get("fire", "") == "fire-breather"
+	var genotype: Dictionary = dragon.get("genotype", {})
+	var trait_def: Dictionary = traits.get("fire", {})
+	if not trait_def.is_empty():
+		var alleles: Array = genotype.get("fire", [])
+		return trait_def.get("dominant_allele", "F") in alleles
+	return dragon.get("phenotype", {}).get("fire", "") == "fire"
 
 
 func get_trait_ids() -> Array:
@@ -412,8 +416,8 @@ func get_phenotype_summary(dragon_id: int) -> String:
 	for trait_id in get_trait_ids():
 		var pheno: String = dragon["phenotype"].get(trait_id, "")
 		if not pheno.is_empty():
-			parts.append("%s: %s" % [trait_id.capitalize(), pheno])
-	return " | ".join(parts)
+			parts.append("%s" % pheno)
+	return "\n".join(parts)
 
 
 func set_level(level: int) -> void:

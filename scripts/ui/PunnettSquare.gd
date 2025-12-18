@@ -146,7 +146,7 @@ func _display_monohybrid(parent_a_id: int, parent_b_id: int, trait_id: String) -
 	_display_probabilities(probs)
 	title_label.text = "Punnett Square: %s" % GeneticsState.get_trait_display_name(trait_id)
 	visible = true
-	grid_container.clear_empties()
+	_hide_unused_cells(MONOHYBRID_CELL_COUNT)
 
 
 func _display_dihybrid(parent_a_id: int, parent_b_id: int, trait_a: String, trait_b: String) -> void:
@@ -204,7 +204,7 @@ func _display_dihybrid(parent_a_id: int, parent_b_id: int, trait_a: String, trai
 		GeneticsState.get_trait_display_name(trait_b)
 	]
 	visible = true
-	grid_container.clear_empties()
+	_hide_unused_cells(DIHYBRID_CELL_COUNT)
 
 func _gamete_string(gamete: Dictionary, order: Array = []) -> String:
 	var parts: Array[String] = []
@@ -225,3 +225,8 @@ func _clear_cells() -> void:
 	for i in range(cells.size()):
 		cells[i].text = ""
 		cells[i].add_theme_color_override("font_color", Color.WHITE)
+
+
+func _hide_unused_cells(active_count: int) -> void:
+	for i in range(cells.size()):
+		cells[i].visible = i < active_count

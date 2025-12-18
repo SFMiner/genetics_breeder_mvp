@@ -6,7 +6,8 @@ extends Node2D
 
 @onready var dragon_grid: GridContainer = %DragonGrid
 @onready var breeding_panel: BreedingPanel = $CanvasLayer/BreedingPanel
-@onready var punnett_square: PunnettSquareUI = %PunnettSquare
+@onready var punnett_square: PunnettSquareUI = %PunnettSquare as PunnettSquareUI
+@onready var quiz_punnett_square: QuizPunnettSquareUI = %QuizSquare as QuizPunnettSquareUI
 @onready var selection_popup: SelectionPopup = $CanvasLayer/SelectionPopup
 @onready var reset_button: Button = $CanvasLayer/ResetButton
 @onready var level_select: OptionButton = $CanvasLayer/LevelSelect
@@ -14,16 +15,19 @@ extends Node2D
 @onready var generation_label: Label = $CanvasLayer/GenerationLabel
 @onready var breed_player : AudioStreamPlayer = $BreedPlayer
 @onready var rename_player : AudioStreamPlayer = $RenamePlayer
-
-
+@onready var fire_emoji : Sprite2D = $CanvasLayer/GenerationLabel/FireEmoji
+@onready var smoke_emoji : Sprite2D = $CanvasLayer/GenerationLabel/SmokeEmoji
 ## Preload the Dragon scene
 var dragon_scene: PackedScene = preload("res://scenes/organisms/Dragon.tscn")
 
 ## Track dragon node instances by ID
 var dragon_nodes: Dictionary = {}
-
+var smoke_emoji_pos : Vector2
+var fire_emoji_pos : Vector2
 ## Grid layout
 const DRAGONS_PER_ROW : int = 6
+
+const EMOJI_SHIFT : Vector2 = Vector2(10,0)
 
 
 func _ready() -> void:
@@ -32,6 +36,9 @@ func _ready() -> void:
 	GeneticsState.dragon_renamed.connect(_on_dragon_renamed)
 	GeneticsState.breeding_complete.connect(_on_breeding_complete)
 	GeneticsState.collection_reset.connect(_on_collection_reset)
+	
+	smoke_emoji_pos = smoke_emoji.position
+	fire_emoji_pos = fire_emoji.position
 
 	# Configure grid
 	dragon_grid.columns = DRAGONS_PER_ROW
@@ -43,7 +50,7 @@ func _ready() -> void:
 	level_select.item_selected.connect(_on_level_selected)
 	_populate_level_select()
 	_ensure_punnett_square()
-	_ensure_punnett_square()
+	_ensure_quiz_square()
 	
 	# Spawn initial dragons from GeneticsState
 	_spawn_all_dragons()
@@ -142,15 +149,23 @@ func _on_dragon_renamed(dragon_id: int, _new_name: String) -> void:
 func _update_punnett_square() -> void:
 	## Update the Punnett square display based on selected parents
 	_ensure_punnett_square()
+	_ensure_quiz_square()
 	if GeneticsState.selected_parent_a_id >= 0 and GeneticsState.selected_parent_b_id >= 0:
 		if punnett_square:
 			punnett_square.display_cross(
 				GeneticsState.selected_parent_a_id,
 				GeneticsState.selected_parent_b_id
 			)
+		if quiz_punnett_square:
+			quiz_punnett_square.display_quiz(
+				GeneticsState.selected_parent_a_id,
+				GeneticsState.selected_parent_b_id
+			)
 	else:
 		if punnett_square:
 			punnett_square.hide_square()
+		if quiz_punnett_square:
+			quiz_punnett_square.visible = false
 
 
 func _on_breed_requested() -> void:
@@ -194,6 +209,8 @@ func _on_reset_pressed() -> void:
 	breeding_panel.clear_parents()
 	if punnett_square:
 		punnett_square.hide_square()
+	if quiz_punnett_square:
+		quiz_punnett_square.visible = false
 	selection_popup.visible = false
 	
 	# Reset GeneticsState (this will re-spawn starters)
@@ -215,12 +232,21 @@ func _update_generation_label() -> void:
 	var no_fire_count: int = 0
 	
 	for dragon in GeneticsState.dragon_collection:
-		if dragon["phenotype"].get("fire") == "fire-breather":
+		if GeneticsState.is_fire_breather(dragon.get("id", -1)):
 			fire_count += 1
 		else:
 			no_fire_count += 1
-	
-	generation_label.text = "Dragons: %d | ?? Fire: %d | ?? No Fire: %d" % [total, fire_count, no_fire_count]
+	if total > 9: 
+		fire_emoji.position = fire_emoji_pos + EMOJI_SHIFT 
+		if fire_count > 9:
+			smoke_emoji.position = smoke_emoji_pos + EMOJI_SHIFT + EMOJI_SHIFT 
+		else:
+			smoke_emoji.position = smoke_emoji_pos + EMOJI_SHIFT
+	else:
+		fire_emoji.position = fire_emoji_pos 
+		smoke_emoji.position = smoke_emoji_pos
+
+	generation_label.text = "Dragons: %d |       Fire: %d |        No Fire: %d" % [total, fire_count, no_fire_count]
 
 
 func _populate_level_select() -> void:
@@ -240,6 +266,8 @@ func _on_level_selected(index: int) -> void:
 	breeding_panel.clear_parents()
 	if punnett_square:
 		punnett_square.hide_square()
+	if quiz_punnett_square:
+		quiz_punnett_square.visible = false
 	selection_popup.visible = false
 	GeneticsState.set_level(level_id)
 	if punnett_square:
@@ -260,3 +288,12 @@ func _ensure_punnett_square() -> void:
 			punnett_square = node
 		else:
 			push_warning("PunnettSquare node not found; check scene tree path.")
+
+
+func _ensure_quiz_square() -> void:
+	if quiz_punnett_square == null:
+		var node := get_node_or_null("CanvasLayer/QuizSquare")
+		if node:
+			quiz_punnett_square = node
+		else:
+			push_warning("QuizPunnettSquare node not found; check scene tree path.")

@@ -1,34 +1,31 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-- Core gameplay lives in `scenes/main/BreederRoom.tscn` with its controller in `scripts/main/BreederRoom.gd`.
-- Reusable organisms are under `scenes/organisms` with matching logic in `scripts/dragons` (e.g., `Dragon.tscn` + `Dragon.gd`).
-- UI panels and popups reside in `scenes/ui` with controllers in `scripts/ui` (BreedingPanel, PunnettSquare, SelectionPopup).
-- Shared state and genetics logic live in the autoload singleton `scripts/autoload/GeneticsState.gd` (registered in `project.godot`).
-- Export presets sit in `export_presets.cfg`; keep them in sync if you add platforms.
+- Main flow lives in `scenes/main/BreederRoom.tscn` with controller `scripts/main/BreederRoom.gd`; it instantiates both the result Punnett square and the quiz square.
+- Organisms: `scenes/organisms/Dragon.tscn` with logic in `scripts/dragons/Dragon.gd` (assigns textures from `assets/sprites`, e.g., `dragon_ad_fr_wd.png`).
+- UI: `scenes/ui` contains `BreedingPanel.tscn`, `SelectionPopup.tscn`, `PunnettSquare.tscn` (results) and `QuizPunnettSquare.tscn` (player input). Matching scripts live in `scripts/ui/`.
+- Shared genetics rules and level data (Level 1: fire only; Level 2: fire + wings) live in the autoload singleton `scripts/autoload/GeneticsState.gd` (registered in `project.godot`).
+- Export presets are in `export_presets.cfg`; keep platform entries in sync when adding builds.
 
-## Build, Run, and Development Commands
-- Open the project in the Godot editor: `godot4 --editor --path .`
-- Play the game from CLI using the configured main scene: `godot4 --path .`
-- Run headless for quick smoke runs (no rendering): `godot4 --headless --path . --quit-after 1` (useful for validating autoload initialization).
-- When adding autoloads or changing the main scene, update `project.godot` and re-run to verify the editor picks them up.
+## Build, Test, and Development Commands
+- Open the project: `godot4 --editor --path .`
+- Run the game with the configured main scene: `godot4 --path .`
+- Quick smoke without rendering: `godot4 --headless --path . --quit-after 1` (catches autoload/scene load errors).
+- After adding autoloads or changing the main scene, re-run once to ensure `project.godot` picks up changes.
 
 ## Coding Style & Naming Conventions
-- Language: GDScript 2.0 with typed variables and signals; keep functions short and focused.
-- Indentation uses tabs in existing files; match surrounding style. Keep lines concise and readable.
-- Classes and scenes use PascalCase (`Dragon`, `BreederRoom`); node paths mirror scene hierarchy; signals and functions use snake_case.
-- Constants are SCREAMING_SNAKE_CASE; prefer `@onready` for node references and `@export` for editable fields.
-- Use brief doc comments with `##` to describe intent above functions or blocks that need context.
+- Use GDScript 2 with typed variables and signals; prefer `@onready` for scene references and `@export` for editor tuning.
+- Match existing indentation (tabs) and Godot naming: PascalCase for scenes/classes, snake_case for functions/signals/vars, SCREAMING_SNAKE_CASE for constants.
+- UI nodes referenced via `%` must keep their unique names; keep quiz/result square cell counts at 2 columns (monohybrid) or 4 (dihybrid).
+- Sprite assets follow `dragon_a{allele}_f{allele}_w{allele}.png`; add new traits with consistent prefixes.
 
 ## Testing Guidelines
-- No automated test suite is present; perform manual verification:
-  - Run the main scene and breed dragons with different parent combinations; confirm Punnett square updates and offspring phenotypes match allele expectations.
-  - Check reset flow: clicking Reset should clear nodes, selections, and respawn starters from `GeneticsState`.
-  - Verify new UI elements behave in both fire/no-fire cases and resize appropriately at 1280x720 and smaller viewports.
-- If you add logic-heavy code, consider a headless run plus in-editor breakpoints to validate allele calculations.
+- Manual checks only: run the main scene, click dragons and parent slots, and verify selection highlights.
+- For Level 1 and 2, confirm Punnett square values, quiz inputs, and result highlighting; ensure gridlines and labels align.
+- Use Reset Lab to confirm collections clear and starter dragons respawn; ensure quiz/result squares refresh accordingly.
+- If you touch genetics math, test breeding across all allele combos and watch for off-screen layout issues at 1280x720.
 
 ## Commit & Pull Request Guidelines
-- Git repo is initialized; keep `main` clean. Stage intentionally (`git status`, `git add <paths>`) and use concise, imperative commits (`Add Punnett probability labels`, `Fix selection highlight reset`).
-- In PRs, include: summary of changes, gameplay impact, reproduction steps, and screenshots/GIFs for UI updates.
-- Mention modified scenes/scripts explicitly (e.g., `scenes/ui/PunnettSquare.tscn`, `scripts/autoload/GeneticsState.gd`) so reviewers can focus their checks.
-- Keep diffs minimal: prefer updating existing scenes/scripts rather than duplicating nodes; remove unused debug prints before submission.
+- Git is initialized; keep commits small and imperative (`Fix quiz square layout`, `Add wings trait sprites`). Run `git status` to avoid accidental `.godot/editor` noise unless intentionally updating editor state.
+- In PRs, summarize gameplay impact, list modified scenes/scripts, add repro steps, and attach screenshots/GIFs for UI changes.
+- Prefer editing existing scenes/scripts over duplicating nodes; remove temporary debug prints before submitting.

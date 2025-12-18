@@ -1,0 +1,166 @@
+[gd_scene load_steps=10 format=3 uid="uid://bkb5c4gdodx4k"]
+
+[ext_resource type="FontFile" uid="uid://bjg0kcxg014gf" path="res://assets/MotleyForcesRegular-w1rZ3.ttf" id="1_5buwc"]
+[ext_resource type="Script" uid="uid://ca7cgt0ks4670" path="res://scripts/ui/QuizPunnettSquare.gd" id="1_quiz"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_m1ura"]
+bg_color = Color(0.09411765, 0.44705883, 0.8039216, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0, 1, 0.92941177, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+expand_margin_top = 2.0
+expand_margin_bottom = 2.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_5buwc"]
+bg_color = Color(0.4615004, 0.31725168, 0.4720788, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xor27"]
+bg_color = Color(0.25565878, 0.2556588, 0.2556587, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+expand_margin_left = 2.0
+expand_margin_top = 2.0
+expand_margin_right = 2.0
+expand_margin_bottom = 2.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_0gump"]
+bg_color = Color(0.6150114, 0.5569184, 0.799965, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hs8ls"]
+
+[sub_resource type="Theme" id="Theme_xor27"]
+Button/font_sizes/font_size = 19
+Button/fonts/font = ExtResource("1_5buwc")
+Button/styles/normal = SubResource("StyleBoxFlat_m1ura")
+Label/font_sizes/font_size = 24
+Label/fonts/font = null
+LineEdit/font_sizes/font_size = 12
+LineEdit/styles/focus = SubResource("StyleBoxFlat_5buwc")
+LineEdit/styles/normal = SubResource("StyleBoxFlat_xor27")
+OptionButton/font_sizes/font_size = 19
+OptionButton/styles/normal = SubResource("StyleBoxFlat_0gump")
+Panel/styles/panel = SubResource("StyleBoxFlat_hs8ls")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_c7qg3"]
+bg_color = Color(0.36862746, 0.13725491, 0.20392157, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 0.49019608, 0.83137256, 1)
+corner_radius_top_left = 9
+corner_radius_top_right = 9
+corner_radius_bottom_right = 9
+corner_radius_bottom_left = 9
+
+[node name="QuizPunnettSquare" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 350.0
+offset_bottom = 500.0
+theme = SubResource("Theme_xor27")
+script = ExtResource("1_quiz")
+
+[node name="Panel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_c7qg3")
+
+[node name="TitleLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.023
+anchor_right = 1.0
+anchor_bottom = 0.023
+offset_bottom = 26.0
+grow_horizontal = 2
+theme_override_fonts/font = ExtResource("1_5buwc")
+theme_override_font_sizes/font_size = 22
+text = "Quiz Square"
+horizontal_alignment = 1
+
+[node name="ParentALabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.198
+anchor_top = 0.093
+anchor_right = 1.0
+anchor_bottom = 0.128
+offset_bottom = 13.0
+theme_override_colors/font_color = Color(1, 0, 1, 1)
+theme_override_font_sizes/font_size = 16
+text = "Parent A Gametes"
+
+[node name="ParentBLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 30.0
+offset_top = 91.0
+offset_right = 170.0
+offset_bottom = 370.0
+theme_override_colors/font_color = Color(0, 1, 1, 1)
+theme_override_constants/line_spacing = 4
+theme_override_font_sizes/font_size = 16
+text = "Parent B Gametes"
+
+[node name="GridContainer" type="GridContainer" parent="."]
+custom_minimum_size = Vector2(70, 20)
+layout_mode = 0
+offset_left = 91.0
+offset_top = 80.0
+offset_right = 161.0
+offset_bottom = 100.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/h_separation = 6
+theme_override_constants/v_separation = 6
+columns = 4
+
+[node name="SubmitButton" type="Button" parent="."]
+layout_mode = 0
+offset_left = 33.0
+offset_top = 392.0
+offset_right = 153.0
+offset_bottom = 417.0
+text = "Submit"
+
+[node name="CloseButton" type="Button" parent="."]
+layout_mode = 0
+offset_left = 11.0
+offset_top = 6.0
+offset_right = 81.0
+offset_bottom = 31.0
+text = "Close"
+
+[node name="ResultLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 39.0
+offset_top = 434.0
+offset_right = 379.0
+offset_bottom = 514.0
+theme_override_font_sizes/font_size = 14
+text = "Enter your guesses 
+and submit."

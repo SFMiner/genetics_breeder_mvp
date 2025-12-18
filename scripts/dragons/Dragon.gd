@@ -22,8 +22,8 @@ signal clicked(dragon_id: int)
 const COLOR_FIRE_BREATHER := Color(1.0, 0.4, 0.1)      # Orange
 const COLOR_NO_FIRE := Color(0.4, 0.5, 0.7)            # Blue-gray
 const COLOR_SELECTED := Color(1.0, 1.0, 0.0, 0.4)     # Yellow highlight
-const COLOR_PARENT_A := Color(1.0, 0.2, 0.2, 0.5)     # Red tint for Parent A
-const COLOR_PARENT_B := Color(0.2, 0.2, 1.0, 0.5)     # Blue tint for Parent B
+const COLOR_PARENT_A := Color(0.875, 0.0, 0.969, 0.973)     # Red tint for Parent A
+const COLOR_PARENT_B := Color(0.2, 1.0, 1.0, 1.0)     # Blue tint for Parent B
 
 ## Selection state
 var is_selected_as_parent_a: bool = false
