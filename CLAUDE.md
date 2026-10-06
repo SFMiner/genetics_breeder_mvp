@@ -29,6 +29,12 @@ This file is the single copy of the project conventions; AGENTS.md only points h
 - Use Reset Lab to confirm collections clear and starter dragons respawn; ensure quiz/result squares refresh accordingly.
 - If you touch genetics math, test breeding across all allele combos and watch for off-screen layout issues at 1280x720.
 
+## Genome Engine
+- `addons/genome/` is a vendored copy of `../genome-engine` (https://github.com/SFMiner/genome-engine). Never edit it here: change the engine, then run `bash tools/sync_genome.sh ../dragon_genetics` from `genome-engine`.
+- `GeneticsState` builds a `GenomeLibrary` from `TRAIT_LIBRARY` and delegates crossing and phenotype lookup to it; use `set_seed(n)` for repeatable breeding.
+- Headless tests: `../Godot_v4.5-stable_win64.exe --headless --path . --script tests/test_genetics_state.gd` (or `GODOT=<binary> bash tests/run_all_tests.sh`).
+- `.gitattributes` forces LF so the addon's sync hash stays stable; keep it.
+
 ## Commit & Pull Request Guidelines
 - Git is initialized; keep commits small and imperative (`Fix quiz square layout`, `Add wings trait sprites`). Run `git status` to avoid accidental `.godot/editor` noise unless intentionally updating editor state.
 - In PRs, summarize gameplay impact, list modified scenes/scripts, add repro steps, and attach screenshots/GIFs for UI changes.

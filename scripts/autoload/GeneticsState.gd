@@ -53,10 +53,22 @@ const TRAIT_LIBRARY := {
 var traits: Dictionary = {}
 var current_level: int = 1
 
+## Genome Engine library built from the active trait set (see addons/genome)
+var library: GenomeLibrary = null
+
+## RNG used for all breeding; randomized by default, seedable via set_seed()
+var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+
 
 func _ready() -> void:
+	rng.randomize()
 	_set_traits_for_level(current_level)
 	_spawn_starter_dragons()
+
+
+func set_seed(seed_value: int) -> void:
+	## Make breeding repeatable (tests, replays)
+	rng.seed = seed_value
 
 
 func _spawn_starter_dragons() -> void:
@@ -129,21 +141,18 @@ func calculate_phenotype(genotype: Dictionary) -> Dictionary:
 	## For complete dominance: one dominant allele = dominant phenotype
 	
 	var phenotype := {}
-	
-	for trait_id in genotype.keys():
-		var alleles: Array = genotype[trait_id]
-		var trait_def: Dictionary = traits.get(trait_id, {})
-		
-		if trait_def.is_empty():
+
+	for trait_id: String in genotype.keys():
+		if not library.has_locus(trait_id):
 			continue
-		
-		var dominant: String = trait_def["dominant_allele"]
-		
-		if dominant in alleles:
-			phenotype[trait_id] = trait_def["dominant_phenotype"]
-		else:
-			phenotype[trait_id] = trait_def["recessive_phenotype"]
-	
+		var alleles: Array = genotype[trait_id]
+		if alleles.size() != 2:
+			continue
+
+		var locus: GenomeLocus = library.get_locus(trait_id)
+		var data: Dictionary = locus.phenotype_of(alleles)
+		phenotype[trait_id] = str(data.get("name", ""))
+
 	return phenotype
 
 
@@ -172,22 +181,18 @@ func breed(parent_a_id: int, parent_b_id: int) -> int:
 
 
 func _calculate_offspring_genotype(genotype_a: Dictionary, genotype_b: Dictionary) -> Dictionary:
-	## Mendelian inheritance: randomly select one allele from each parent per trait
-	
-	var offspring_genotype := {}
-	
-	for trait_id in traits.keys():
-		var alleles_a: Array = genotype_a.get(trait_id, [])
-		var alleles_b: Array = genotype_b.get(trait_id, [])
-		
-		if alleles_a.size() < 2 or alleles_b.size() < 2:
-			continue
-		
-		var from_a: String = alleles_a[randi() % 2]
-		var from_b: String = alleles_b[randi() % 2]
-		
-		offspring_genotype[trait_id] = _normalize_allele_pair(from_a, from_b)
-	
+	## Mendelian inheritance (meiosis + fertilization) is delegated to the Genome Engine.
+	## A trait missing or malformed on a parent counts as that trait's recessive pair.
+
+	var offspring_genotype: Dictionary = Genome.cross(
+		library,
+		_valid_pairs_only(genotype_a),
+		_valid_pairs_only(genotype_b),
+		rng,
+		0.0,
+		_active_trait_ids()
+	)
+
 	return _ensure_all_traits(offspring_genotype)
 
 
@@ -210,7 +215,7 @@ func build_punnett_square(parent_a_id: int, parent_b_id: int, trait_id: String) 
 	for b_allele in alleles_b:
 		var row := []
 		for a_allele in alleles_a:
-			var combined := _normalize_allele_pair(a_allele, b_allele)
+			var combined := _normalize_allele_pair(trait_id, a_allele, b_allele)
 			row.append(combined)
 		square.append(row)
 	return square
@@ -248,8 +253,8 @@ func build_dihybrid_square(parent_a_id: int, parent_b_id: int, trait_a: String, 
 		var row := []
 		for g_a in gametes_a:
 			var geno := {}
-			geno[trait_a] = _normalize_allele_pair(g_a[trait_a][0], g_b[trait_a][0])
-			geno[trait_b] = _normalize_allele_pair(g_a[trait_b][0], g_b[trait_b][0])
+			geno[trait_a] = _normalize_allele_pair(trait_a, g_a[trait_a][0], g_b[trait_a][0])
+			geno[trait_b] = _normalize_allele_pair(trait_b, g_a[trait_b][0], g_b[trait_b][0])
 			row.append(geno)
 		square.append(row)
 	return square
@@ -311,17 +316,56 @@ func _normalize_genotype(genotype: Dictionary) -> Dictionary:
 	for trait_id in genotype.keys():
 		var alleles: Array = genotype[trait_id]
 		if alleles.size() >= 2:
-			normalized[trait_id] = _normalize_allele_pair(alleles[0], alleles[1])
+			normalized[trait_id] = _normalize_allele_pair(trait_id, alleles[0], alleles[1])
 	return normalized
 
 
-func _normalize_allele_pair(allele1: String, allele2: String) -> Array:
-	if allele1 == allele1.to_upper() and allele2 == allele2.to_lower():
+func _normalize_allele_pair(trait_id: String, allele1: String, allele2: String) -> Array:
+	## Canonical order (dominant allele first) via the engine; unknown traits keep input order
+	if not library.has_locus(trait_id):
 		return [allele1, allele2]
-	elif allele2 == allele2.to_upper() and allele1 == allele1.to_lower():
-		return [allele2, allele1]
-	else:
-		return [allele1, allele2]
+	var locus: GenomeLocus = library.get_locus(trait_id)
+	var canon: Array[String] = locus.canonical_pair([allele1, allele2])
+	return [canon[0], canon[1]]
+
+
+func _active_trait_ids() -> Array[String]:
+	var ids: Array[String] = []
+	for trait_id: String in traits.keys():
+		ids.append(trait_id)
+	return ids
+
+
+func _valid_pairs_only(genotype: Dictionary) -> Dictionary:
+	## Copy of a genotype keeping only 2-allele entries (others fall back to the recessive default)
+	var out: Dictionary = {}
+	for trait_id: String in genotype.keys():
+		var alleles: Array = genotype[trait_id]
+		if alleles.size() == 2:
+			out[trait_id] = alleles
+	return out
+
+
+func _build_library() -> GenomeLibrary:
+	## Build the Genome Engine library from the active TRAIT_LIBRARY level entry
+	var lib: GenomeLibrary = GenomeLibrary.new()
+	for trait_id: String in traits.keys():
+		var trait_def: Dictionary = traits[trait_id]
+		var dominant: String = trait_def["dominant_allele"]
+		var recessive: String = trait_def["recessive_allele"]
+
+		var locus: GenomeLocus = GenomeLocus.new()
+		locus.id = trait_id
+		locus.display_name = trait_def["name"]
+		locus.alleles = [dominant, recessive]
+		locus.dominance = GenomeLocus.Dominance.COMPLETE
+		locus.dominance_rank = [dominant, recessive]
+		locus.phenotypes = {
+			dominant: {"name": trait_def["dominant_phenotype"]},
+			recessive: {"name": trait_def["recessive_phenotype"]}
+		}
+		lib.add_locus(locus)
+	return lib
 
 
 func _determine_generation(dragon_id: int) -> int:
@@ -431,6 +475,7 @@ func set_level(level: int) -> void:
 
 func _set_traits_for_level(level: int) -> void:
 	traits = TRAIT_LIBRARY.get(level, TRAIT_LIBRARY[1]).duplicate(true)
+	library = _build_library()
 
 
 func _ensure_all_traits(genotype: Dictionary) -> Dictionary:
