@@ -14,6 +14,12 @@ signal parent_b_slot_clicked()
 @onready var breed_button: Button = $BreedButton
 @onready var instructions_label: Label = $InstructionsLabel
 
+const HATCH_TEXT: String = "Hatch 20 eggs"
+const NEED_PREDICTION_TEXT: String = "Make a prediction first"
+
+## True once the current prediction has been checked
+var prediction_checked: bool = false
+
 ## Currently displayed parent IDs
 var displayed_parent_a_id: int = -1
 var displayed_parent_b_id: int = -1
@@ -38,8 +44,14 @@ func _on_parent_b_slot_pressed() -> void:
 
 
 func _on_breed_button_pressed() -> void:
-	if GeneticsState.can_breed():
+	if GeneticsState.can_breed() and prediction_checked:
 		breed_requested.emit()
+
+
+func set_prediction_checked(checked: bool) -> void:
+	## Unlock (or lock) the Hatch button for the predict-then-breed loop
+	prediction_checked = checked
+	_update_display()
 
 
 func set_parent_a(dragon_id: int) -> void:
@@ -88,18 +100,22 @@ func _update_display() -> void:
 	else:
 		parent_b_slot.text = "Parent B:\n[Click to Select]"
 	
-	# Update breed button
-	var can_breed: bool = (displayed_parent_a_id >= 0 and 
+	# Update breed button (predict-then-breed: locked until the prediction is checked)
+	var can_breed: bool = (displayed_parent_a_id >= 0 and
 						   displayed_parent_b_id >= 0 and
 						   displayed_parent_a_id != displayed_parent_b_id)
-	breed_button.disabled = not can_breed
-	
+	breed_button.disabled = not (can_breed and prediction_checked)
+	breed_button.text = HATCH_TEXT
+	breed_button.tooltip_text = "" if prediction_checked else NEED_PREDICTION_TEXT
+
 	# Update instructions
 	if displayed_parent_a_id < 0:
 		instructions_label.text = "Click a dragon, then click 'Parent A' to select it"
 	elif displayed_parent_b_id < 0:
 		instructions_label.text = "Now select a different dragon as Parent B"
+	elif can_breed and not prediction_checked:
+		instructions_label.text = NEED_PREDICTION_TEXT
 	elif can_breed:
-		instructions_label.text = "Ready! Click 'Breed' to create offspring"
+		instructions_label.text = "Ready! Click 'Hatch 20 eggs'"
 	else:
 		instructions_label.text = "Select two different dragons to breed"

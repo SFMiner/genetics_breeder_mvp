@@ -24,10 +24,14 @@ This file is the single copy of the project conventions; AGENTS.md only points h
 - Sprite assets follow `dragon_a{allele}_f{allele}_w{allele}.png`; add new traits with consistent prefixes.
 
 ## Testing Guidelines
-- Manual checks only: run the main scene, click dragons and parent slots, and verify selection highlights.
+- Headless tests (two suites: `test_genetics_state.gd`, `test_prediction.gd`): `GODOT=../Godot_v4.5-stable_win64.exe bash tests/run_all_tests.sh`. Run an editor scan first (`--headless --path . --editor --quit-after 250`) after adding a `class_name` script so it is registered.
+- Screenshot gate (needs rendering, so do NOT pass `--headless`): `DG_SHOT=C:/path/out.png ../Godot_v4.5-stable_win64.exe --path .` auto-picks the two starters, enters a sample prediction, checks it, hatches a clutch, saves the viewport and quits. `DG_LEVEL=2` starts on Level 2, `DG_STAGE=pre` stops before the check, `DG_HET=1` uses two heterozygous parents. Look at the PNG for overlap/clipping at 1280x720.
+- Predict-then-breed spec: `docs/PREDICT_THEN_BREED.md`. Its logic is in `scripts/rules/prediction_logic.gd`; `PredictionPanel` and `ClutchPanel` are built in code (`scripts/ui/`) and added by `BreederRoom`. The quiz square no longer opens by itself (it covered the Punnett square); the "Quiz me on the square" button opens it.
+- Manual checks (secondary): run the main scene, click dragons and parent slots, and verify selection highlights.
 - For Level 1 and 2, confirm Punnett square values, quiz inputs, and result highlighting; ensure gridlines and labels align.
 - Use Reset Lab to confirm collections clear and starter dragons respawn; ensure quiz/result squares refresh accordingly.
 - If you touch genetics math, test breeding across all allele combos and watch for off-screen layout issues at 1280x720.
+- Layout caveat: the prediction/clutch panels sit under the first row of dragon tiles (y 262+), so a collection of 7+ dragons (second tile row) runs underneath them.
 
 ## Genome Engine
 - `addons/genome/` is a vendored copy of `../genome-engine` (https://github.com/SFMiner/genome-engine). Never edit it here: change the engine, then run `bash tools/sync_genome.sh ../dragon_genetics` from `genome-engine`.

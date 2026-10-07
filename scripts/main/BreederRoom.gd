@@ -29,8 +29,28 @@ const DRAGONS_PER_ROW : int = 6
 
 const EMOJI_SHIFT : Vector2 = Vector2(10,0)
 
+# === PREDICT-THEN-BREED ===
+const CLUTCH_SIZE: int = 20
+## Left-hand column under the dragon tiles; both panels share it (one stage at a time)
+const PREDICT_POSITION: Vector2 = Vector2(8, 262)
+## The clutch panel fills the space between the compact prediction panel and the right column
+const CLUTCH_TOP: float = 262.0
+const CLUTCH_RIGHT: float = 912.0
+const PANEL_GAP: float = 8.0
+## The quiz square covers the Punnett square, so it opens from this button instead of automatically
+const QUIZ_BUTTON_POSITION: Vector2 = Vector2(700, 664)
+const QUIZ_BUTTON_SIZE: Vector2 = Vector2(200, 48)
+
+var prediction_panel: PredictionPanel = null
+var clutch_panel: ClutchPanel = null
+var quiz_button: Button = null
+
 
 func _ready() -> void:
+	# Debug gate: DG_LEVEL=2 starts on Level 2 (set before anything spawns)
+	if OS.get_environment("DG_LEVEL") == "2":
+		GeneticsState.set_level(2)
+
 	# Connect GeneticsState signals
 	GeneticsState.dragon_added.connect(_on_dragon_added)
 	GeneticsState.dragon_renamed.connect(_on_dragon_renamed)
@@ -51,12 +71,149 @@ func _ready() -> void:
 	_populate_level_select()
 	_ensure_punnett_square()
 	_ensure_quiz_square()
-	
+	_build_prediction_panels()
+
 	# Spawn initial dragons from GeneticsState
 	_spawn_all_dragons()
-	
+
 	# Update generation display
 	_update_generation_label()
+
+	# Debug gate: DG_SHOT=<png path> runs the loop automatically and saves a screenshot
+	var shot_path: String = OS.get_environment("DG_SHOT")
+	if not shot_path.is_empty():
+		_run_screenshot_gate(shot_path)
+
+
+func _build_prediction_panels() -> void:
+	## Create the PredictionPanel and ClutchPanel in code (containers only, no .tscn layout)
+	var layer: CanvasLayer = $CanvasLayer
+	prediction_panel = PredictionPanel.new()
+	prediction_panel.position = PREDICT_POSITION
+	prediction_panel.prediction_checked.connect(_on_prediction_checked)
+	layer.add_child(prediction_panel)
+
+	clutch_panel = ClutchPanel.new()
+	clutch_panel.keep_requested.connect(_on_keep_requested)
+	layer.add_child(clutch_panel)
+	
+	quiz_button = Button.new()
+	quiz_button.text = "Quiz me on the square"
+	quiz_button.position = QUIZ_BUTTON_POSITION
+	quiz_button.custom_minimum_size = QUIZ_BUTTON_SIZE
+	quiz_button.size = QUIZ_BUTTON_SIZE
+	quiz_button.add_theme_font_size_override("font_size", 16)
+	quiz_button.visible = false
+	quiz_button.pressed.connect(_on_quiz_button_pressed)
+	layer.add_child(quiz_button)
+
+	if punnett_square:
+		punnett_square.set_summary_hidden(true)
+
+
+func _on_quiz_button_pressed() -> void:
+	if GeneticsState.can_breed() and quiz_punnett_square:
+		quiz_punnett_square.display_quiz(
+			GeneticsState.selected_parent_a_id,
+			GeneticsState.selected_parent_b_id
+		)
+
+
+func _show_clutch(clutch: Array[Dictionary]) -> void:
+	## Compact the prediction panel, then fit the clutch panel into the space beside it
+	prediction_panel.set_compact(true)
+	var left: float = PREDICT_POSITION.x + prediction_panel.desired_width() + PANEL_GAP
+	var width: float = CLUTCH_RIGHT - left
+	clutch_panel.position = Vector2(left, CLUTCH_TOP)
+	clutch_panel.custom_minimum_size = Vector2(width, 0)
+	clutch_panel.size = Vector2(width, 0)
+	clutch_panel.show_clutch(clutch, prediction_panel.exact_ratios())
+
+
+func _reset_prediction_loop() -> void:
+	## Back to step 2: no prediction, summary hidden, Hatch locked
+	if prediction_panel:
+		prediction_panel.reset()
+	if clutch_panel:
+		clutch_panel.reset()
+	if quiz_button:
+		quiz_button.visible = false
+	breeding_panel.set_prediction_checked(false)
+	if punnett_square:
+		punnett_square.set_summary_hidden(true)
+
+
+func _begin_prediction() -> void:
+	## Called after a parent changes: restart the loop for the new pair (if it is a valid pair)
+	var a_id: int = GeneticsState.selected_parent_a_id
+	var b_id: int = GeneticsState.selected_parent_b_id
+	if GeneticsState.can_breed():
+		if prediction_panel.visible and prediction_panel.parent_a_id == a_id and prediction_panel.parent_b_id == b_id:
+			return
+		_reset_prediction_loop()
+		prediction_panel.setup(a_id, b_id)
+		quiz_button.visible = true
+	else:
+		_reset_prediction_loop()
+
+
+func _on_prediction_checked(_all_right: bool) -> void:
+	## Step 3: reveal the Punnett summary and unlock Hatch
+	if punnett_square:
+		punnett_square.set_summary_hidden(false)
+	breeding_panel.set_prediction_checked(true)
+
+
+func _on_keep_requested(genotype: Dictionary) -> void:
+	## Step 5: keep one hatchling (the other 19 are discarded)
+	var offspring_id: int = GeneticsState.add_offspring(
+		genotype,
+		GeneticsState.selected_parent_a_id,
+		GeneticsState.selected_parent_b_id
+	)
+	if offspring_id >= 0:
+		breed_player.play()
+		_update_generation_label()
+
+
+func _run_screenshot_gate(path: String) -> void:
+	## Debug: select the starters (or DG_HET=1 heterozygous parents), predict, check, hatch, screenshot, quit.
+	## DG_STAGE=pre stops after the prediction is entered but before it is checked.
+	GeneticsState.set_seed(42)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	var a_id: int = 0
+	var b_id: int = 1
+	if OS.get_environment("DG_HET") == "1":
+		var het: Dictionary = {"fire": ["F", "f"], "wings": ["W", "w"]}
+		a_id = GeneticsState.add_dragon(het, "Ember")
+		b_id = GeneticsState.add_dragon(het, "Spark")
+		await get_tree().process_frame
+	_on_parent_a_selected(a_id)
+	_on_parent_b_selected(b_id)
+	await get_tree().process_frame
+	var sample: Array[int] = []
+	if GeneticsState.current_level == 1:
+		sample.append_array([12, 4])
+	else:
+		sample.append_array([9, 3, 3, 1])
+	var trait_ids: Array[String] = []
+	for trait_id: String in GeneticsState.get_trait_ids():
+		trait_ids.append(trait_id)
+	var classes: Array[String] = PredictionLogic.phenotype_classes(GeneticsState.traits, trait_ids)
+	for i: int in range(classes.size()):
+		prediction_panel.pick(classes[i], sample[i])
+	await get_tree().process_frame
+	if OS.get_environment("DG_STAGE") != "pre":
+		prediction_panel.check()
+		await get_tree().process_frame
+		_on_breed_requested()
+	for i: int in range(3):
+		await get_tree().process_frame
+	var image: Image = get_viewport().get_texture().get_image()
+	var err: int = image.save_png(path)
+	print("DG_SHOT saved %s (err %d)" % [path, err])
+	get_tree().quit()
 
 
 func _spawn_all_dragons() -> void:
@@ -157,30 +314,27 @@ func _update_punnett_square() -> void:
 				GeneticsState.selected_parent_b_id
 			)
 		if quiz_punnett_square:
-			quiz_punnett_square.display_quiz(
-				GeneticsState.selected_parent_a_id,
-				GeneticsState.selected_parent_b_id
-			)
+			quiz_punnett_square.visible = false
 	else:
 		if punnett_square:
 			punnett_square.hide_square()
 		if quiz_punnett_square:
 			quiz_punnett_square.visible = false
+	_begin_prediction()
 
 
 func _on_breed_requested() -> void:
-	## Handle breed button press
-	if not GeneticsState.can_breed():
+	## Step 4: hatch a clutch of 20 (nothing is added to the collection until one is kept)
+	if not GeneticsState.can_breed() or not prediction_panel.is_checked():
 		return
 	
-	# Perform breeding
-	var offspring_id: int = GeneticsState.breed(
-		GeneticsState.selected_parent_a_id,
-		GeneticsState.selected_parent_b_id
-	)
+	var a_id: int = GeneticsState.selected_parent_a_id
+	var b_id: int = GeneticsState.selected_parent_b_id
+	var clutch: Array[Dictionary] = GeneticsState.breed_clutch(a_id, b_id, CLUTCH_SIZE)
+	if clutch.is_empty():
+		return
 	breed_player.play()
-	if offspring_id >= 0:
-		_update_generation_label()
+	_show_clutch(clutch)
 
 
 func _on_breeding_complete(offspring_id: int) -> void:
@@ -207,6 +361,7 @@ func _on_reset_pressed() -> void:
 	
 	# Clear UI state
 	breeding_panel.clear_parents()
+	_reset_prediction_loop()
 	if punnett_square:
 		punnett_square.hide_square()
 	if quiz_punnett_square:
@@ -264,6 +419,7 @@ func _on_level_selected(index: int) -> void:
 		return
 	_clear_dragons()
 	breeding_panel.clear_parents()
+	_reset_prediction_loop()
 	if punnett_square:
 		punnett_square.hide_square()
 	if quiz_punnett_square:

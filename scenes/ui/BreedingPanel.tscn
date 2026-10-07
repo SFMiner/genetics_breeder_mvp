@@ -94,23 +94,24 @@ text = "Parent B:
 
 [node name="BreedButton" type="Button" parent="."]
 layout_mode = 0
-offset_left = 90.0
-offset_top = 115.0
-offset_right = 230.0
-offset_bottom = 146.0
+offset_left = 60.0
+offset_top = 108.0
+offset_right = 260.0
+offset_bottom = 156.0
 theme_override_colors/font_color = Color(0.9155984, 0.91212624, 7.70092e-07, 1)
 theme_override_constants/align_to_largest_stylebox = 1
 theme_override_fonts/font = ExtResource("2_tf0bc")
+theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = SubResource("StyleBoxFlat_le713")
 disabled = true
-text = "    Breed!"
+text = "Hatch 20 eggs"
 
 [node name="InstructionsLabel" type="Label" parent="."]
 layout_mode = 0
 offset_left = 1.0
-offset_top = 152.0
+offset_top = 158.0
 offset_right = 317.0
-offset_bottom = 177.0
+offset_bottom = 180.0
 theme_override_font_sizes/font_size = 12
 text = "Click a dragon, then click 'Parent A' to select it"
 horizontal_alignment = 1
@@ -121,6 +122,6 @@ scale = Vector2(0.3888889, 0.3888889)
 texture = ExtResource("3_2ka73")
 
 [node name="Dragonegg" type="Sprite2D" parent="."]
-position = Vector2(131, 132)
+position = Vector2(84, 132)
 scale = Vector2(0.30952382, 0.30952382)
 texture = ExtResource("4_le713")

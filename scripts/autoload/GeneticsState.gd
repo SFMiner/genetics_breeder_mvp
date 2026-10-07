@@ -56,6 +56,10 @@ var current_level: int = 1
 ## Genome Engine library built from the active trait set (see addons/genome)
 var library: GenomeLibrary = null
 
+## Session score for the predict-then-breed loop (resets with reset())
+var predictions_made: int = 0
+var predictions_right: int = 0
+
 ## RNG used for all breeding; randomized by default, seedable via set_seed()
 var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 
@@ -82,8 +86,8 @@ func _spawn_starter_dragons() -> void:
 		add_dragon({"fire": ["f", "f"], "wings": ["w", "w"]}, "Frost")
 
 
-func add_dragon(genotype: Dictionary, dragon_name: String = "") -> int:
-	## Add a new dragon to the collection
+func add_dragon(genotype: Dictionary, dragon_name: String = "", parents: Array = []) -> int:
+	## Add a new dragon to the collection (parents = [a_id, b_id] for offspring)
 	## Returns the dragon's ID
 	
 	var dragon_id := _next_dragon_id
@@ -106,7 +110,9 @@ func add_dragon(genotype: Dictionary, dragon_name: String = "") -> int:
 		"phenotype": phenotype,
 		"generation": _determine_generation(dragon_id)
 	}
-	
+	if parents.size() == 2:
+		dragon["parents"] = [parents[0], parents[1]]
+
 	dragon_collection.append(dragon)
 	dragon_added.emit(dragon_id)
 	
@@ -173,11 +179,40 @@ func breed(parent_a_id: int, parent_b_id: int) -> int:
 		parent_b["genotype"]
 	)
 	
-	var offspring_id := add_dragon(offspring_genotype)
-	
+	return add_offspring(offspring_genotype, parent_a_id, parent_b_id)
+
+
+func breed_clutch(a_id: int, b_id: int, n: int) -> Array[Dictionary]:
+	## Roll n offspring genotypes for a cross WITHOUT adding anything to the collection.
+	## Uses the shared seeded rng, so set_seed() makes a clutch repeatable.
+	var clutch: Array[Dictionary] = []
+	var parent_a: Dictionary = get_dragon(a_id)
+	var parent_b: Dictionary = get_dragon(b_id)
+	if parent_a.is_empty() or parent_b.is_empty():
+		push_error("Cannot hatch: invalid parent ID")
+		return clutch
+	for i: int in range(n):
+		var geno: Dictionary = _calculate_offspring_genotype(parent_a["genotype"], parent_b["genotype"])
+		clutch.append(geno)
+	return clutch
+
+
+func add_offspring(genotype: Dictionary, a_id: int, b_id: int) -> int:
+	## Add one offspring of a_id x b_id to the collection (the single path used by breed()).
+	## Returns the new dragon's ID, or -1 if a parent is invalid.
+	if get_dragon(a_id).is_empty() or get_dragon(b_id).is_empty():
+		push_error("Cannot add offspring: invalid parent ID")
+		return -1
+	var offspring_id: int = add_dragon(genotype, "", [a_id, b_id])
 	breeding_complete.emit(offspring_id)
-	
 	return offspring_id
+
+
+func record_prediction(all_right: bool) -> void:
+	## Update the session score after a prediction is checked
+	predictions_made += 1
+	if all_right:
+		predictions_right += 1
 
 
 func _calculate_offspring_genotype(genotype_a: Dictionary, genotype_b: Dictionary) -> Dictionary:
@@ -399,6 +434,8 @@ func can_breed() -> bool:
 func reset() -> void:
 	dragon_collection.clear()
 	_next_dragon_id = 0
+	predictions_made = 0
+	predictions_right = 0
 	clear_selection()
 	_spawn_starter_dragons()
 	collection_reset.emit()

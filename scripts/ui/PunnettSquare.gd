@@ -17,6 +17,7 @@ var cells: Array[Label] = []
 var current_trait_id: String = ""
 var last_parent_a_id: int = -1
 var last_parent_b_id: int = -1
+var summary_hidden: bool = false
 const DIHYBRID_CELL_COUNT := 16
 const MONOHYBRID_CELL_COUNT := 4
 
@@ -77,10 +78,19 @@ func _display_probabilities(probs: Dictionary) -> void:
 	var text := "Predicted Offspring:\n"
 	
 	for phenotype in probs.keys():
-		var percent: int = int(probs[phenotype] * 100)
-		text += "%s: %d%%\n" % [phenotype.capitalize(), percent]
+		# Same fraction the prediction panel uses, plus the exact percent (18.75 not a truncated 18)
+		var p: float = probs[phenotype]
+		var fraction: String = PredictionLogic.fraction_label(roundi(p * PredictionLogic.DENOMINATOR))
+		text += "%s: %s (%s%%)\n" % [phenotype.capitalize(), fraction, String.num(p * 100.0, 2)]
 	
 	probability_label.text = text
+	probability_label.visible = not summary_hidden
+
+
+func set_summary_hidden(hidden: bool) -> void:
+	## Predict-then-breed: hide the "Predicted Offspring" answer until the prediction is locked
+	summary_hidden = hidden
+	probability_label.visible = not summary_hidden
 
 
 func hide_square() -> void:
