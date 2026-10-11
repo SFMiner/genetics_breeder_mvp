@@ -129,7 +129,7 @@ offset_left = 1031.0
 offset_top = 669.0
 offset_right = 1171.0
 offset_bottom = 700.0
-text = "🔄 Reset Lab"
+text = "Reset Lab"
 
 [node name="InstructionsLabel" type="Label" parent="CanvasLayer"]
 offset_left = 11.0

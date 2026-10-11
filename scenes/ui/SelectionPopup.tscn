@@ -40,7 +40,7 @@ offset_top = 62.0
 offset_right = 210.0
 offset_bottom = 82.0
 theme_override_font_sizes/font_size = 14
-text = "Phenotype: 🔥 Fire-Breather"
+text = "Phenotype: Fire-Breather"
 horizontal_alignment = 1
 
 [node name="ParentAButton" type="Button" parent="Panel"]

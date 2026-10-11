@@ -44,6 +44,8 @@ const QUIZ_BUTTON_SIZE: Vector2 = Vector2(200, 48)
 var prediction_panel: PredictionPanel = null
 var clutch_panel: ClutchPanel = null
 var quiz_button: Button = null
+var keyboard: KeyboardNav = null
+var _popup_dragon_id: int = -1
 
 
 func _ready() -> void:
@@ -72,6 +74,7 @@ func _ready() -> void:
 	_ensure_punnett_square()
 	_ensure_quiz_square()
 	_build_prediction_panels()
+	_setup_keyboard()
 
 	# Spawn initial dragons from GeneticsState
 	_spawn_all_dragons()
@@ -83,6 +86,31 @@ func _ready() -> void:
 	var shot_path: String = OS.get_environment("DG_SHOT")
 	if not shot_path.is_empty():
 		_run_screenshot_gate(shot_path)
+
+
+func _setup_keyboard() -> void:
+	## Tab order, focus outlines and the keyboard exit live in KeyboardNav (see its header)
+	keyboard = KeyboardNav.new()
+	keyboard.name = "KeyboardNav"
+	$CanvasLayer.add_child(keyboard)
+	keyboard.setup(self)
+	selection_popup.popup_closed.connect(_on_popup_closed)
+	var hint: Label = $CanvasLayer/InstructionsLabel
+	hint.text = "Click a dragon, or Tab to one and press Enter, to choose parents.
+Tab = next group, arrow keys = move inside a group, Esc = close or leave."
+
+
+func _on_popup_closed() -> void:
+	## Keyboard users get focus back on the dragon tile they opened the menu from
+	if selection_popup.closed_from_keyboard:
+		var tile: Dragon = dragon_nodes.get(_popup_dragon_id)
+		if tile != null and tile.is_visible_in_tree():
+			tile.grab_focus()
+
+
+func _focus_if_keys(target: Control) -> void:
+	if keyboard != null and keyboard.keys_in_use and target != null and target.is_visible_in_tree():
+		target.grab_focus()
 
 
 func _build_prediction_panels() -> void:
@@ -117,6 +145,9 @@ func _on_quiz_button_pressed() -> void:
 			GeneticsState.selected_parent_a_id,
 			GeneticsState.selected_parent_b_id
 		)
+		if keyboard.keys_in_use and not quiz_punnett_square.cells.is_empty():
+			var first_cell: LineEdit = quiz_punnett_square.cells[0]["geno"]
+			first_cell.grab_focus()
 
 
 func _show_clutch(clutch: Array[Dictionary]) -> void:
@@ -162,6 +193,8 @@ func _on_prediction_checked(_all_right: bool) -> void:
 	if punnett_square:
 		punnett_square.set_summary_hidden(false)
 	breeding_panel.set_prediction_checked(true)
+	# The Check button just disabled itself: pass focus to Hatch so the next key press continues the loop
+	_focus_if_keys(breeding_panel.breed_button)
 
 
 func _on_keep_requested(genotype: Dictionary) -> void:
@@ -174,6 +207,7 @@ func _on_keep_requested(genotype: Dictionary) -> void:
 	if offspring_id >= 0:
 		breed_player.play()
 		_update_generation_label()
+		_focus_if_keys(dragon_nodes.get(offspring_id))
 
 
 func _run_screenshot_gate(path: String) -> void:
@@ -244,6 +278,7 @@ func _on_dragon_added(dragon_id: int) -> void:
 
 func _on_dragon_clicked(dragon_id: int) -> void:
 	## Show selection popup when a dragon is clicked
+	_popup_dragon_id = dragon_id
 	var dragon_node: Dragon = dragon_nodes.get(dragon_id)
 	if dragon_node:
 		var popup_pos: Vector2 = dragon_node.global_position + Vector2(50, -50)
@@ -335,6 +370,8 @@ func _on_breed_requested() -> void:
 		return
 	breed_player.play()
 	_show_clutch(clutch)
+	if keyboard.keys_in_use and not clutch_panel.chips().is_empty():
+		clutch_panel.chips()[0].grab_focus()
 
 
 func _on_breeding_complete(offspring_id: int) -> void:

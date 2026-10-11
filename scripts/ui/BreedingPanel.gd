@@ -110,7 +110,7 @@ func _update_display() -> void:
 
 	# Update instructions
 	if displayed_parent_a_id < 0:
-		instructions_label.text = "Click a dragon, then click 'Parent A' to select it"
+		instructions_label.text = "Pick a dragon (click or Enter), then Parent A"
 	elif displayed_parent_b_id < 0:
 		instructions_label.text = "Now select a different dragon as Parent B"
 	elif can_breed and not prediction_checked:

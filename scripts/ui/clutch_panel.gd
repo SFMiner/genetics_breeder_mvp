@@ -155,6 +155,10 @@ func show_clutch(clutch: Array[Dictionary], exact: Dictionary) -> void:
 	visible = true
 
 
+func chips() -> Array[Button]:
+	return _chips
+
+
 func chip_count() -> int:
 	return _chips.size()
 

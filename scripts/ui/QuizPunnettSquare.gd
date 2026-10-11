@@ -313,11 +313,16 @@ func _on_submit_pressed() -> void:
 			_set_cell_color(cell, COLOR_CORRECT)
 		else:
 			_set_cell_color(cell, COLOR_INCORRECT)
-		cell["expected_label"].text = "Ans: %s | %s" % [expected_geno, expected_pheno]
+		cell["expected_label"].text = "%s. Ans: %s | %s" % ["Right" if correct else "Not quite", expected_geno, expected_pheno]
 		if correct:
 			score += 1
 	
 	result_label.text = "Score: %d / %d" % [score, total]
+
+
+func close() -> void:
+	## Public close (Escape)
+	_on_close_pressed()
 
 
 func _on_close_pressed() -> void:

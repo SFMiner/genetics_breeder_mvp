@@ -38,10 +38,26 @@ const SPRITE_TOP := 30.0
 const SPRITE_BOTTOM := 110.0
 const GENO_TOP := 115.0
 const GENO_BOTTOM := 135.0
+const FOCUS_COLOR := Color(1.0, 0.85, 0.2)
+
+## Text badge so the parent role is never shown by colour alone
+var role_label: Label = null
 
 func _ready() -> void:
 	# Let the Area2D handle input; the Control root should not consume it
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# Keyboard: Tab / arrows focus the tile, Enter or Space opens the same menu as a click
+	focus_mode = Control.FOCUS_ALL
+	focus_entered.connect(queue_redraw)
+	focus_exited.connect(queue_redraw)
+	role_label = Label.new()
+	role_label.add_theme_font_size_override("font_size", 13)
+	role_label.add_theme_color_override("font_color", Color(0.1, 0.1, 0.1))
+	role_label.add_theme_color_override("font_outline_color", Color(1, 1, 1))
+	role_label.add_theme_constant_override("outline_size", 4)
+	role_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	role_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(role_label)
 	
 	# Ensure click signal is connected (scene also wires it, but keep it explicit)
 	if click_area and not click_area.input_event.is_connected(_on_click_area_input_event):
@@ -105,11 +121,27 @@ func _update_selection_highlight() -> void:
 	if is_selected_as_parent_a:
 		selection_highlight.visible = true
 		selection_highlight.color = COLOR_PARENT_A
+		role_label.text = "Parent A"
 	elif is_selected_as_parent_b:
 		selection_highlight.visible = true
 		selection_highlight.color = COLOR_PARENT_B
+		role_label.text = "Parent B"
 	else:
 		selection_highlight.visible = false
+		role_label.text = ""
+
+
+func _draw() -> void:
+	## Focus outline for keyboard users
+	if has_focus():
+		draw_rect(Rect2(Vector2.ZERO, size).grow(-1.0), FOCUS_COLOR, false, 3.0)
+
+
+func _gui_input(event: InputEvent) -> void:
+	## Enter / Space on a focused tile = click it
+	if event.is_action_pressed("ui_accept") and not event.is_echo():
+		clicked.emit(dragon_id)
+		accept_event()
 
 
 func set_as_parent_a(is_parent: bool) -> void:
@@ -173,6 +205,11 @@ func _layout_nodes(width: float) -> void:
 	genotype_label.offset_right = width - PAD
 	genotype_label.offset_top = GENO_TOP
 	genotype_label.offset_bottom = GENO_BOTTOM
+	
+	role_label.offset_left = PAD
+	role_label.offset_right = width - PAD
+	role_label.offset_top = LABEL_TOP + 18.0
+	role_label.offset_bottom = LABEL_TOP + 38.0
 	
 	# Click area and collision shape
 	click_area.position = Vector2(center_x, BASE_HEIGHT / 2.0)

@@ -115,6 +115,19 @@ func exact_ratios() -> Dictionary:
 	return _exact
 
 
+func row_groups() -> Array:
+	## One Array[Button] per phenotype row, in order (keyboard Tab stops)
+	var groups: Array = []
+	for kind: String in _classes:
+		if _rows.has(kind):
+			groups.append(_rows[kind]["buttons"])
+	return groups
+
+
+func check_button() -> Button:
+	return _check_button
+
+
 func total_16ths() -> int:
 	## Sum of the picked numerators (over 16)
 	var total: int = 0
@@ -298,10 +311,10 @@ func _on_check_pressed() -> void:
 		var result_label: Label = row["result"]
 		var correct_text: String = PredictionLogic.fraction_label(int(result["correct"]))
 		if bool(result["right"]):
-			result_label.text = "✓ %s" % correct_text
+			result_label.text = "Right: %s" % correct_text
 			result_label.add_theme_color_override("font_color", COLOR_RIGHT)
 		else:
-			result_label.text = "✗ it is %s" % correct_text
+			result_label.text = "Not quite: it is %s" % correct_text
 			result_label.add_theme_color_override("font_color", COLOR_WRONG)
 		var buttons: Array = row["buttons"]
 		for btn: Button in buttons:

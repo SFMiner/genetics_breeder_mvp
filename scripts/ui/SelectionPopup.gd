@@ -22,6 +22,8 @@ signal dragon_renamed(dragon_id: int, new_name: String)
 @onready var close_button: Button = $Panel/CloseButton
 
 var current_dragon_id: int = -1
+## True when the last close happened while focus was inside the popup (the room then returns focus to the tile)
+var closed_from_keyboard: bool = false
 
 
 func _ready() -> void:
@@ -29,6 +31,7 @@ func _ready() -> void:
 	parent_b_button.pressed.connect(_on_parent_b_pressed)
 	rename_button.pressed.connect(_on_rename_button_pressed)
 	rename_save_button.pressed.connect(_on_rename_save_pressed)
+	rename_line_edit.text_submitted.connect(func(_text: String) -> void: _on_rename_save_pressed())
 	close_button.pressed.connect(_on_close_pressed)
 	
 	_hide_rename_fields()
@@ -58,6 +61,7 @@ func show_for_dragon(dragon_id: int, screen_position: Vector2) -> void:
 	position = _clamp_to_screen(screen_position)
 	
 	visible = true
+	parent_a_button.grab_focus()
 
 
 func _clamp_to_screen(pos: Vector2) -> Vector2:
@@ -100,13 +104,21 @@ func _on_rename_save_pressed() -> void:
 	dragon_name_label.text = new_name
 	dragon_renamed.emit(current_dragon_id, new_name)
 	_hide_rename_fields()
+	rename_button.grab_focus()
 
 
 func _on_close_pressed() -> void:
 	_close()
 
 
+func close() -> void:
+	## Public close (Escape)
+	_close()
+
+
 func _close() -> void:
+	var focus: Control = get_viewport().gui_get_focus_owner()
+	closed_from_keyboard = focus != null and panel.is_ancestor_of(focus)
 	visible = false
 	current_dragon_id = -1
 	popup_closed.emit()

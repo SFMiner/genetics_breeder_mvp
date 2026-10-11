@@ -10,4 +10,9 @@
 - [x] Prediction panel and clutch panel built in code (`scripts/ui/prediction_panel.gd`, `clutch_panel.gd`), pure logic in `scripts/rules/prediction_logic.gd`
 - [x] Headless tests for the prediction loop: `tests/test_prediction.gd`
 - [x] `DG_SHOT` screenshot gate for layout checks (see CLAUDE.md)
+- [x] Keyboard: Tab order, visible focus outline, arrow keys inside groups, Escape closes a box then leaves (`scripts/ui/KeyboardNav.gd`, `tests/test_keyboard.gd`)
+- [x] Whole predict-then-breed loop playable without a mouse
+- [x] No emoji/symbols in text (web fonts); right/wrong and Parent A/B shown in words, not colour alone
+- [x] Web export for sims.mr-miner.com (2D + GUI template, single-threaded, unused assets excluded)
+- [x] Sims-site keyboard exit (`sims:leave-game`)
 - [ ] Play-test the loop with students (wording, pacing, 7+ dragon collections under the panels)

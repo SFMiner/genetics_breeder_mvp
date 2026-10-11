@@ -23,8 +23,11 @@ GeneticsState="*res://scripts/autoload/GeneticsState.gd"
 window/size/viewport_width=1280
 window/size/viewport_height=720
 window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
 
 [rendering]
+
+environment/defaults/default_clear_color=Color(0.14901961, 0.6039216, 0.6745098, 1)
 
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
